@@ -23,7 +23,8 @@ export const config = {
   /** The business agent's name, as users address it ("Ask Flow"). */
   agentName: process.env.AGENT_NAME ?? 'Flow',
   port: num('PORT', 8787),
-  publicBaseUrl: process.env.PUBLIC_BASE_URL ?? 'http://localhost:8787',
+  // On Render, RENDER_EXTERNAL_URL is set automatically to the service's public HTTPS URL.
+  publicBaseUrl: process.env.PUBLIC_BASE_URL || process.env.RENDER_EXTERNAL_URL || 'http://localhost:8787',
   sessionSecret: process.env.SESSION_SECRET ?? '',
   databasePath: process.env.DATABASE_PATH ?? './data/orqestra.db',
 

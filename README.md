@@ -122,7 +122,9 @@ During development: `npm run dev` (API on :8787, Vite on :5173).
 
 ## Deploy
 
-One always-on Node service with a persistent disk for SQLite (held tool calls keep a request open for up to `APPROVAL_WAIT_SECONDS`, so serverless functions are a poor fit). A `Dockerfile` is included; on Render/Fly/Railway set the environment variables from `.env.example`, mount a volume at `/app/data`, and set `PUBLIC_BASE_URL` to the public HTTPS URL.
+**Render (free):** this repo includes a `render.yaml` blueprint. In Render choose **New → Blueprint**, pick this repository, and paste the two secrets it asks for (`ARMORIQ_API_KEY` and your model key). `SESSION_SECRET` and `MCP_BEARER_TOKEN` are generated for you, and the public URL is detected automatically. Free instances sleep after 15 minutes without traffic, so point a free uptime monitor at `https://<your-service>.onrender.com/api/health` every 10 minutes. The free tier has no persistent disk; demo data reseeds on each restart.
+
+**Anywhere else:** one always-on Node service from the `Dockerfile` (held tool calls keep a request open for up to `APPROVAL_WAIT_SECONDS`, so serverless functions are a poor fit). Set the environment variables from `.env.example`, set `PUBLIC_BASE_URL` to the public HTTPS URL, and mount a volume at `/app/data` if you want data to survive restarts.
 
 ## Known limitations (MVP)
 

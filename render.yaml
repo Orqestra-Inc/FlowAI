@@ -1,0 +1,35 @@
+# Render blueprint: New → Blueprint → select this repo.
+# Secrets marked `sync: false` are asked for once in the Render dashboard; generated ones are created for you.
+services:
+  - type: web
+    name: orqestra
+    runtime: docker
+    plan: free            # free instances sleep after 15 min idle; keep warm by pinging /api/health every 10 min
+    region: frankfurt
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      # PUBLIC_BASE_URL is optional on Render: the app falls back to RENDER_EXTERNAL_URL.
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: MCP_BEARER_TOKEN
+        generateValue: true   # copy it from the dashboard into ArmorIQ when registering /mcp
+      - key: ARMORIQ_API_KEY
+        sync: false
+      - key: LLM_MODEL
+        value: google-genai:gemini-2.5-flash
+      - key: GOOGLE_API_KEY
+        sync: false           # or set OPENAI_API_KEY / ANTHROPIC_API_KEY and change LLM_MODEL
+      - key: ARMORIQ_AGENT_NAME
+        value: orqestra-agent
+      - key: ARMORIQ_MCP_NAME
+        value: orqestra-erp
+      - key: APPROVAL_WAIT_SECONDS
+        value: "90"
+      - key: DEMO_MODE
+        value: "1"
+      - key: DEMO_ALLOW_UNPROTECTED
+        value: "0"            # set to 1 only while recording the before/after comparison
+      - key: LANGCHAIN_CALLBACKS_BACKGROUND
+        value: "false"
