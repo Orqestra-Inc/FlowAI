@@ -25,6 +25,7 @@ export interface RunDeps {
   /** ArmorIQ guard. Null only for an explicit, demo-only unprotected run. */
   guard: Guard | null;
   appName: string;
+  agentName: string;
   modelLabel: string;
   maxToolCalls: number;
   maxModelCalls: number;
@@ -116,7 +117,7 @@ export async function runAgent(deps: RunDeps, input: RunInput): Promise<void> {
   const agent = createAgent({
     model: deps.model,
     tools: buildTools(db, actor),
-    systemPrompt: instructions(actor, businessName, deps.appName),
+    systemPrompt: instructions(actor, businessName, deps.appName, deps.agentName),
     checkpointer: deps.checkpointer,
     middleware: [
       toolCallLimitMiddleware({ runLimit: deps.maxToolCalls, exitBehavior: 'end' }),

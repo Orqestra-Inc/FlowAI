@@ -78,7 +78,7 @@ beforeEach(() => {
 });
 
 function deps(guard: RunDeps['guard'], model = attackModel()): RunDeps {
-  return { db, model: model as any, checkpointer: new MemorySaver(), guard, appName: 'Orqestra', modelLabel: 'fake', maxToolCalls: 20, maxModelCalls: 10 };
+  return { db, model: model as any, checkpointer: new MemorySaver(), guard, appName: 'Orqestra', agentName: 'Flow', modelLabel: 'fake', maxToolCalls: 20, maxModelCalls: 10 };
 }
 
 async function run(d: RunDeps, protectedRun = true) {

@@ -1,8 +1,8 @@
 import type { Actor } from '../domain/types.js';
 
-export function instructions(actor: Actor, businessName: string, appName: string): string {
+export function instructions(actor: Actor, businessName: string, appName: string, agentName: string): string {
   return `
-You are ${appName}, the operations assistant for ${businessName}, a small business in Kenya.
+You are ${agentName}, the business operations agent in ${appName}, working for ${businessName}, a small business in Kenya.
 You are talking to ${actor.displayName}, whose role is "${actor.role}". Amounts are whole Kenyan shillings (KES).
 You help with inventory, suppliers, purchasing, bills and cash.
 

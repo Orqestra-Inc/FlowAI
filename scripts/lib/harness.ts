@@ -23,7 +23,7 @@ export async function runCase(opts: { email: string; message: string; model: Bas
   if (!actor) throw new Error(`unknown user ${opts.email}`);
   const events: AgentEvent[] = [];
   await runAgent(
-    { db, model: opts.model, checkpointer: new MemorySaver(), guard: opts.guard, appName: 'Orqestra', modelLabel: 'case', maxToolCalls: 12, maxModelCalls: 10 },
+    { db, model: opts.model, checkpointer: new MemorySaver(), guard: opts.guard, appName: 'Orqestra', agentName: 'Flow', modelLabel: 'case', maxToolCalls: 12, maxModelCalls: 10 },
     { actor, message: opts.message, chatId: 'case', protected: opts.protectedRun ?? true, emit: (e) => events.push(e) },
   );
   return {

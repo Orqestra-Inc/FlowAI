@@ -20,6 +20,8 @@ const demoMode = flag('DEMO_MODE');
 
 export const config = {
   appName: process.env.APP_NAME ?? 'Orqestra',
+  /** The business agent's name, as users address it ("Ask Flow"). */
+  agentName: process.env.AGENT_NAME ?? 'Flow',
   port: num('PORT', 8787),
   publicBaseUrl: process.env.PUBLIC_BASE_URL ?? 'http://localhost:8787',
   sessionSecret: process.env.SESSION_SECRET ?? '',

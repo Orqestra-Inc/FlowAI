@@ -127,7 +127,7 @@ function Desk({ config, user, onSignOut, onSwitch }: { config: AppConfig; user: 
         <p className="wordmark">{config.appName}</p>
         <p className="rail-business">Baraka Fresh Distributors</p>
         <nav className="rail-nav" aria-label="Views">
-          <button aria-current={view === 'chat'} onClick={() => setView('chat')}>Ask</button>
+          <button aria-current={view === 'chat'} onClick={() => setView('chat')}>Ask {config.agentName}</button>
           <button aria-current={view === 'activity'} onClick={() => setView('activity')}>Activity</button>
         </nav>
         <Overview refreshKey={refreshKey} />
@@ -167,7 +167,7 @@ function Desk({ config, user, onSignOut, onSwitch }: { config: AppConfig; user: 
             onShowLedger={() => setLedgerOpen(true)}
           />
         ) : (
-          <Activity refreshKey={refreshKey} />
+          <Activity refreshKey={refreshKey} agentName={config.agentName} />
         )}
       </main>
 
@@ -217,11 +217,11 @@ function Conversation(props: {
         {turns.length === 0 && (
           <div className="empty">
             <h2>Good to see you, {user.displayName.split(' ')[0]}.</h2>
-            <p>Ask in plain words. Try one of these:</p>
+            <p>Ask {config.agentName} in plain words. Try one of these:</p>
           </div>
         )}
         {turns.map((t) => (
-          <TurnView key={t.id} turn={t} user={user} onSend={submit} onShowLedger={onShowLedger} />
+          <TurnView key={t.id} turn={t} user={user} agentName={config.agentName} onSend={submit} onShowLedger={onShowLedger} />
         ))}
         <div ref={endRef} />
       </div>
@@ -237,7 +237,7 @@ function Conversation(props: {
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(draft); } }}
-            placeholder={running ? 'Working…' : 'Ask about stock, suppliers, bills or cash'}
+            placeholder={running ? `${config.agentName} is working…` : `Ask ${config.agentName} about stock, suppliers, bills or cash`}
             rows={2}
             maxLength={2000}
             aria-label="Message"
@@ -258,7 +258,7 @@ function Conversation(props: {
   );
 }
 
-function TurnView({ turn, user, onSend, onShowLedger }: { turn: Turn; user: User; onSend: (m: string) => void; onShowLedger: () => void }) {
+function TurnView({ turn, user, agentName, onSend, onShowLedger }: { turn: Turn; user: User; agentName: string; onSend: (m: string) => void; onShowLedger: () => void }) {
   const slips = useMemo(() => deriveSlips(turn.events), [turn.events]);
   const final = turn.events.find((e) => e.type === 'final') as Extract<AgentEvent, { type: 'final' }> | undefined;
   const error = turn.error ?? (turn.events.find((e) => e.type === 'error') as any)?.message;
@@ -274,7 +274,7 @@ function TurnView({ turn, user, onSend, onShowLedger }: { turn: Turn; user: User
     if (s.tool === 'calculate_reorder_options') cards.push(<ReorderCard key={s.key} data={data} />);
     if ((s.tool === 'create_purchase_order_draft' || s.tool === 'commit_purchase_order' || s.tool === 'get_purchase_order') && data.order_id && !seenOrders.has(data.order_id)) {
       seenOrders.add(data.order_id);
-      cards.push(<OrderCard key={`${s.key}-po`} orderId={data.order_id} user={user} onSend={onSend} />);
+      cards.push(<OrderCard key={`${s.key}-po`} orderId={data.order_id} user={user} agentName={agentName} onSend={onSend} />);
     }
   }
 
@@ -324,7 +324,7 @@ function ReorderCard({ data }: { data: any }) {
   );
 }
 
-function OrderCard({ orderId, user, onSend }: { orderId: string; user: User; onSend: (m: string) => void }) {
+function OrderCard({ orderId, user, agentName, onSend }: { orderId: string; user: User; agentName: string; onSend: (m: string) => void }) {
   const [po, setPo] = useState<PurchaseOrder | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -376,7 +376,7 @@ function OrderCard({ orderId, user, onSend }: { orderId: string; user: User; onS
       {po.status === 'approved' && po.approval_id && (
         <div className="actions">
           <button className="primary" onClick={() => onSend(`Order ${po.order_id} has been approved (approval ${po.approval_id}). Please place it.`)}>
-            Ask Orqestra to place it
+            Ask {agentName} to place it
           </button>
         </div>
       )}
@@ -415,9 +415,9 @@ function Ledger({ turn, config, open, onClose }: { turn?: Turn; config: AppConfi
       <p className="ledger-sub">
         {turn
           ? turn.protected
-            ? 'Every action the agent tried, checked by ArmorIQ before it ran.'
+            ? `Every action ${config.agentName} tried, checked by ArmorIQ before it ran.`
             : 'ArmorIQ was off. Nothing checked these actions.'
-          : 'Each action the agent tries will be recorded here with its decision.'}
+          : `Each action ${config.agentName} tries will be recorded here with its decision.`}
       </p>
       <ol className="slips">
         {slips.map((s) => (
@@ -459,7 +459,7 @@ const DECISION: Record<ActivityRow['decision'], string> = {
   allowed: 'Allowed', held: 'Held', approved: 'Approved', blocked: 'Blocked', failed: 'Failed', completed: 'Completed', info: '—',
 };
 
-function Activity({ refreshKey }: { refreshKey: number }) {
+function Activity({ refreshKey, agentName }: { refreshKey: number; agentName: string }) {
   const [rows, setRows] = useState<ActivityRow[]>([]);
   const [error, setError] = useState('');
   useEffect(() => {
@@ -470,7 +470,7 @@ function Activity({ refreshKey }: { refreshKey: number }) {
       <h2>Activity</h2>
       <p className="lede">Every request, check and outcome, newest first. Account numbers are masked.</p>
       {error && <p className="error">{error}</p>}
-      {rows.length === 0 && !error && <p className="hint">Nothing yet. Ask Orqestra something and its actions will appear here.</p>}
+      {rows.length === 0 && !error && <p className="hint">Nothing yet. Ask {agentName} something and its actions will appear here.</p>}
       <div className="table-wrap">
         <table>
           <thead>

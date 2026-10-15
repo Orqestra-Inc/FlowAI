@@ -53,6 +53,7 @@ export function createApp(db: DB, overrides: AppOverrides = {}) {
   app.get('/api/config', (_req, res) => {
     res.json({
       appName: config.appName,
+      agentName: config.agentName,
       demoMode: config.demoMode,
       allowUnprotected: config.allowUnprotected,
       model: config.llmModel,
@@ -205,7 +206,7 @@ export function createApp(db: DB, overrides: AppOverrides = {}) {
     try {
       await runAgent(
         {
-          db, model, checkpointer, guard: isProtected ? guard : null, appName: config.appName,
+          db, model, checkpointer, guard: isProtected ? guard : null, appName: config.appName, agentName: config.agentName,
           modelLabel: config.llmModel, maxToolCalls: config.maxToolCalls, maxModelCalls: config.maxModelCalls,
         },
         { actor, message, chatId: `${chatId}${isProtected ? '' : '-unprotected'}`, protected: isProtected, emit, signal: controller.signal },

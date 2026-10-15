@@ -4,7 +4,7 @@ export type { AgentEvent };
 
 export interface User { userId: string; email: string; businessId: string; role: 'owner' | 'procurement' | 'accountant'; displayName: string }
 export interface AppConfig {
-  appName: string; demoMode: boolean; allowUnprotected: boolean; model: string;
+  appName: string; agentName: string; demoMode: boolean; allowUnprotected: boolean; model: string;
   armoriqConfigured: boolean; armoriqConsoleUrl: string; approvalWaitSeconds: number;
 }
 export interface PoItem { item_id: string; item_name: string; unit: string; quantity: number; unit_price: number; line_total: number }
