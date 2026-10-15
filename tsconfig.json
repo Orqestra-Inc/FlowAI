@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    // "bundler" is required: @armoriq/sdk is CommonJS with no "exports" map,
+    // so the LangChain integration is only reachable by its dist/ path.
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "esModuleInterop": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "types": ["node"]
+  },
+  "include": ["server/**/*.ts", "scripts/**/*.ts", "tests/**/*.ts", "web/src/**/*.ts", "web/src/**/*.tsx", "vite.config.ts", "vitest.config.ts"]
+}

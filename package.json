@@ -1,0 +1,55 @@
+{
+  "name": "orqestra",
+  "version": "0.1.0",
+  "description": "Governed AI operations agent for SMEs (ArmorIQ Flow State MVP)",
+  "scripts": {
+    "test": "vitest run",
+    "dev": "concurrently -k -n api,web \"tsx watch server/index.ts\" \"vite\"",
+    "start": "tsx server/index.ts",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "check": "tsx scripts/check-setup.ts",
+    "boundary": "tsx scripts/boundary.ts",
+    "eval": "tsx scripts/eval.ts",
+    "seed": "tsx scripts/seed.ts",
+    "preview": "DEMO_MODE=1 tsx scripts/preview.ts"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "@armoriq/sdk": "^0.6.10",
+    "@langchain/anthropic": "^1.5.12",
+    "@langchain/core": "^1.2.17",
+    "@langchain/google-genai": "^2.3.2",
+    "@langchain/langgraph": "^1.5.0",
+    "@langchain/openai": "^1.6.2",
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "better-sqlite3": "^13.0.3",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^18.0.8",
+    "express": "^5.3.0",
+    "langchain": "^1.5.16",
+    "tsx": "^4.23.15",
+    "zod": "^4.6.7"
+  },
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.6.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "concurrently": "^10.0.6",
+    "playwright": "^1.64.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.4",
+    "vitest": "^5.0.5"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
