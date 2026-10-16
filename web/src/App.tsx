@@ -221,7 +221,11 @@ function Conversation(props: {
   const { config, user, turns, running, unprotected, setUnprotected, onSend, onShowLedger } = props;
   const [draft, setDraft] = useState('');
   const endRef = useRef<HTMLDivElement>(null);
-  useEffect(() => endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' }), [turns]);
+  // Block body on purpose: an effect must return nothing or a cleanup function. Newer browsers make
+  // scrollIntoView return a Promise, which React would otherwise try to call as a cleanup and crash.
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }, [turns]);
 
   const submit = (text: string) => {
     const t = text.trim();
