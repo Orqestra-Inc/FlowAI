@@ -24,6 +24,12 @@ The demo business is *Baraka Fresh Distributors*, a Nairobi wholesaler. All data
 
 Every decision appears live in the **action ledger** (each tool call is a slip stamped *Allowed*, *Held* or *Blocked*) and in the **Activity** log.
 
+## Voice (ElevenLabs)
+
+Owners are often on the move, so Flow can be asked by voice. **Speak** records a request (up to 60 s); the audio goes to Orqestra's server, which sends it to **ElevenLabs Speech-to-Text** (`scribe_v2`). The transcript becomes the request and goes through exactly the same ArmorIQ checks as typed text. When a request was spoken, Flow's reply is read back with **ElevenLabs Text-to-Speech**; any reply can be replayed with **Listen**.
+
+The ElevenLabs key stays on the server, voice endpoints require a signed-in user, and they're rate-limited (`VOICE_LIMIT_PER_HOUR`, `VOICE_LIMIT_PER_DAY`). Without `ELEVENLABS_API_KEY` the voice controls are hidden. Models and voice are configurable (`ELEVENLABS_STT_MODEL`, `ELEVENLABS_TTS_MODEL`, `ELEVENLABS_VOICE_ID`).
+
 ## How ArmorIQ is used
 
 ```

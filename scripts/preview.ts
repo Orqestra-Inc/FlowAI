@@ -12,6 +12,22 @@ import { ScriptedModel, type Script } from './lib/scripted-model.js';
 import { ArmorIQLangChain } from '@armoriq/sdk/dist/integrations/langchain';
 import { openDb, seed } from '../server/db.js';
 import { createApp } from '../server/app.js';
+import type { Voice } from '../server/voice.js';
+
+/** Preview-only stand-in for ElevenLabs: a fixed transcript and a short silent WAV clip. */
+function silentWav(seconds = 0.6, rate = 8000): ArrayBuffer {
+  const n = Math.floor(seconds * rate);
+  const buf = Buffer.alloc(44 + n);
+  buf.write('RIFF', 0); buf.writeUInt32LE(36 + n, 4); buf.write('WAVE', 8); buf.write('fmt ', 12);
+  buf.writeUInt32LE(16, 16); buf.writeUInt16LE(1, 20); buf.writeUInt16LE(1, 22); buf.writeUInt32LE(rate, 24);
+  buf.writeUInt32LE(rate, 28); buf.writeUInt16LE(1, 32); buf.writeUInt16LE(8, 34); buf.write('data', 36); buf.writeUInt32LE(n, 40);
+  buf.fill(128, 44);
+  return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.length);
+}
+const fakeVoice: Voice = {
+  transcribe: async () => ({ text: 'Which items are below their reorder level?', language: 'en' }),
+  speak: async () => ({ audio: silentWav(), contentType: 'audio/wav' }),
+};
 
 process.env.LANGCHAIN_CALLBACKS_BACKGROUND = 'false';
 
@@ -90,6 +106,6 @@ const fakeClient = {
 const db = openDb(process.env.PREVIEW_DB ?? ':memory:');
 seed(db);
 const guard = new ArmorIQLangChain({ client: fakeClient as any, mode: 'sdk', approvalWaitSeconds: 10 });
-const app = createApp(db, { model: async () => new ScriptedModel(script), guard: () => guard as any });
+const app = createApp(db, { model: async () => new ScriptedModel(script), guard: () => guard as any, voice: fakeVoice });
 const port = Number(process.env.PREVIEW_PORT ?? 8790);
 app.listen(port, () => console.log(`[preview] scripted model + simulated ArmorIQ decisions on http://localhost:${port}`));

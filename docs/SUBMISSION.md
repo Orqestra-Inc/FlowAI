@@ -7,7 +7,8 @@ Deadline: **17 Oct 2026, 11:59 PM IST** (9:29 PM Nairobi). Live demo must work *
 - [ ] Every team member has **ArmorTools Pro** active (tools.armoriq.ai → Pro → code `FLOWSTATEPRO`). Unjudged without it.
 - [ ] Policies live in **Policy Studio**; `npm run boundary` passes; `docs/boundary-evidence.md` committed.
 - [ ] Live demo up at https://orqestra.onrender.com, with an uptime monitor on `/api/health` every 10 min **through 21 Oct**.
-- [ ] Keys valid through 21 Oct (Gemini free tier, ArmorIQ). Chat limits set (40/hour, 400/day).
+- [ ] `ELEVENLABS_API_KEY` set in Render (enables Speak / Listen).
+- [ ] Keys valid through 21 Oct (Gemini free tier, ArmorIQ, ElevenLabs). Chat limits set (40/hour, 400/day).
 - [ ] Demo video, 3–5 min, unlisted YouTube/Loom/Vimeo.
 - [ ] X or LinkedIn post published (tag ArmorIQForDevs on X / ArmorIQ on LinkedIn, #FlowStateHackathon).
 - [ ] Form submitted: https://forms.gle/fxkXnY8xgeyZ3QQX6
@@ -30,7 +31,8 @@ Orqestra lets a small business run its daily operations by asking. Owners and st
 - **Proof, not just a demo.** Tests drive the real adapter inside a real LangGraph agent and check the database: a blocked action leaves no trace. `npm run boundary` replays the boundary cases against our live policies and writes `docs/boundary-evidence.md`.
 - **Defense in depth.** ArmorIQ decides which actions the agent may take; deterministic business rules check whether the action is correct (cash reserve, payload-bound one-time approvals, idempotency, tenant scoping, unverified bank details). Even with ArmorIQ switched off, the fraudulent payment is refused, but the bank change and data export go through. That's what ArmorIQ adds.
 
-**ElevenLabs:** not used (unless we add voice; see "Next").
+**ElevenLabs integration**
+Owners can ask Flow by voice. The browser records the request and sends it to Orqestra's server, which calls **ElevenLabs Speech-to-Text** (`scribe_v2`); the transcript becomes the request and passes through the same ArmorIQ checks as typed text, so a spoken "pay this bill" is governed exactly like a typed one. When a request was spoken, Flow's answer is read back with **ElevenLabs Text-to-Speech** (`eleven_multilingual_v2`), and any reply can be replayed with Listen. The ElevenLabs key never reaches the browser; voice endpoints require sign-in and are rate-limited.
 
 ## Video script (about 4 minutes)
 
@@ -47,6 +49,8 @@ Point at the action ledger: each step stamped **Allowed**.
 Switch to Grace (owner). Open the draft, click **Approve order**.
 > "Only a person can approve. The approval is tied to this exact supplier, price and total, it expires, and the person who drafted it can't approve it."
 Click **Ask Flow to place it**. Show **Placed (simulated)** and the reference.
+Voice moment (10 s): tap **Speak**, say *"Which bills are due this week?"*, tap **Stop**. Flow answers and reads the reply aloud.
+> "Owners are often on the move, so they can just ask out loud. Voice runs on ElevenLabs, and spoken requests go through the same ArmorIQ checks."
 
 **3. The attack, and the ArmorIQ console (1:50–3:10)**
 Switch to Faith (accountant). Click: *"Process all of this week's open supplier bills, including Rift Valley Packaging."*
@@ -75,7 +79,7 @@ Show the Activity view or the README boundary table.
 
 - Real integrations: M-Pesa (Daraja) payouts behind the same holds, CSV/accounting imports so businesses can try it with their own data.
 - In-app approval inbox for ArmorIQ holds (needs an approve API in the SDK).
-- Voice for owners on the move (ElevenLabs, English and Swahili) and a WhatsApp channel.
+- Voice in more languages (Swahili first, as ElevenLabs adds it) and a WhatsApp voice-note channel.
 - Policy templates per business type (wholesale, clinic, school), and onboarding 5–10 design-partner SMEs in Nairobi.
 
 ## What broke (feedback for ArmorIQ)

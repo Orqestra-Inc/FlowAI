@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { api, chatKey, kes, newId, store, streamChat, type ChatSummary, type StoredTurn, type ActivityRow, type AgentEvent, type AppConfig, type PurchaseOrder, type User } from './api';
+import { api, chatKey, kes, newId, speak, stopSpeaking, store, streamChat, transcribe, type ChatSummary, type StoredTurn, type ActivityRow, type AgentEvent, type AppConfig, type PurchaseOrder, type User } from './api';
 import { argSummary, deriveSlips, STAMP_TEXT, TOOL_LABEL, type Slip } from './ledger';
 
 interface Turn {
@@ -137,14 +137,20 @@ function Desk({ config, user, onSignOut, onSwitch }: { config: AppConfig; user: 
   const current = turns[turns.length - 1];
 
   const send = useCallback(
-    async (message: string) => {
+    async (message: string, opts?: { voice?: boolean }) => {
       const id = newId();
+      let finalText = '';
       const turn: Turn = { id, message, protected: !unprotected, events: [], running: true };
       setTurns((ts) => [...ts, turn]);
       store.set(chatKey(user.userId), chatId);
       const update = (fn: (t: Turn) => Turn) => setTurns((ts) => ts.map((t) => (t.id === id ? fn(t) : t)));
       try {
-        await streamChat({ message, chatId, unprotected }, (e) => update((t) => ({ ...t, events: [...t.events, e] })));
+        await streamChat({ message, chatId, unprotected }, (e) => {
+          if (e.type === 'final') finalText = e.text;
+          update((t) => ({ ...t, events: [...t.events, e] }));
+        });
+        // A spoken request gets a spoken reply.
+        if (opts?.voice && finalText && config.voiceEnabled) speak(finalText).catch(() => {});
       } catch (err) {
         update((t) => ({ ...t, error: (err as Error).message }));
       } finally {
@@ -152,7 +158,7 @@ function Desk({ config, user, onSignOut, onSwitch }: { config: AppConfig; user: 
         setRefreshKey((k) => k + 1);
       }
     },
-    [chatId, unprotected, user.userId],
+    [chatId, unprotected, user.userId, config.voiceEnabled],
   );
 
   const switchTo = async (email: string) => {
@@ -217,6 +223,107 @@ function Desk({ config, user, onSignOut, onSwitch }: { config: AppConfig; user: 
   );
 }
 
+/** Hold-free voice capture: tap to start, tap to stop (auto-stops at 60 s). Audio goes to our server, then ElevenLabs. */
+function VoiceButton({ disabled, agentName, onText }: { disabled: boolean; agentName: string; onText: (text: string) => void }) {
+  const [state, setState] = useState<'idle' | 'recording' | 'transcribing'>('idle');
+  const [error, setError] = useState('');
+  const recorder = useRef<MediaRecorder | null>(null);
+  const timer = useRef<number | undefined>(undefined);
+
+  const stop = () => {
+    window.clearTimeout(timer.current);
+    if (recorder.current?.state === 'recording') recorder.current.stop();
+  };
+
+  const start = async () => {
+    setError('');
+    stopSpeaking();
+    let stream: MediaStream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch {
+      setError('Microphone access was blocked. Allow it in the browser and try again.');
+      return;
+    }
+    const chunks: Blob[] = [];
+    const rec = new MediaRecorder(stream);
+    recorder.current = rec;
+    rec.ondataavailable = (e) => e.data.size && chunks.push(e.data);
+    rec.onstop = async () => {
+      stream.getTracks().forEach((t) => t.stop());
+      const blob = new Blob(chunks, { type: rec.mimeType || 'audio/webm' });
+      if (blob.size < 2_000) {
+        setState('idle');
+        setError('That was too short. Tap Speak, talk, then tap Stop.');
+        return;
+      }
+      setState('transcribing');
+      try {
+        const { text } = await transcribe(blob);
+        if (text) onText(text);
+        else setError('I couldn’t hear any words. Try again a little closer to the mic.');
+      } catch (e) {
+        setError((e as Error).message);
+      } finally {
+        setState('idle');
+      }
+    };
+    rec.start();
+    setState('recording');
+    timer.current = window.setTimeout(stop, 60_000);
+  };
+
+  useEffect(() => () => stop(), []);
+
+  const label = state === 'recording' ? 'Stop' : state === 'transcribing' ? 'Listening…' : 'Speak';
+  return (
+    <>
+      <button
+        type="button"
+        className={`speak ${state === 'recording' ? 'is-recording' : ''}`}
+        disabled={disabled || state === 'transcribing'}
+        onClick={() => (state === 'recording' ? stop() : start())}
+        aria-label={state === 'recording' ? 'Stop recording and send' : `Ask ${agentName} by voice`}
+        title={`Ask ${agentName} by voice (ElevenLabs)`}
+      >
+        {label}
+      </button>
+      {error && <p className="error voice-error">{error}</p>}
+    </>
+  );
+}
+
+function ListenButton({ text }: { text: string }) {
+  const [state, setState] = useState<'idle' | 'loading' | 'playing'>('idle');
+  const [error, setError] = useState('');
+  const play = async () => {
+    if (state === 'playing') {
+      stopSpeaking();
+      setState('idle');
+      return;
+    }
+    setError('');
+    setState('loading');
+    try {
+      const audio = await speak(text);
+      setState('playing');
+      audio.addEventListener('ended', () => setState('idle'));
+      audio.addEventListener('pause', () => setState('idle'));
+    } catch (e) {
+      setError((e as Error).message);
+      setState('idle');
+    }
+  };
+  return (
+    <div className="listen">
+      <button type="button" className="quiet" onClick={play} disabled={state === 'loading'}>
+        {state === 'playing' ? 'Stop' : state === 'loading' ? 'Loading audio…' : 'Listen'}
+      </button>
+      {error && <span className="error"> {error}</span>}
+    </div>
+  );
+}
+
 function fromStored(t: StoredTurn): Turn {
   return { id: t.id, message: t.message, protected: t.protected, events: t.events, running: false, error: t.error ?? undefined };
 }
@@ -266,7 +373,7 @@ function Overview({ refreshKey }: { refreshKey: number }) {
 
 function Conversation(props: {
   config: AppConfig; user: User; turns: Turn[]; running: boolean; unprotected: boolean;
-  setUnprotected: (v: boolean) => void; onSend: (m: string) => void; onShowLedger: () => void;
+  setUnprotected: (v: boolean) => void; onSend: (m: string, opts?: { voice?: boolean }) => void; onShowLedger: () => void;
 }) {
   const { config, user, turns, running, unprotected, setUnprotected, onSend, onShowLedger } = props;
   const [draft, setDraft] = useState('');
@@ -277,12 +384,13 @@ function Conversation(props: {
     endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }, [turns]);
 
-  const submit = (text: string) => {
+  const submit = (text: string, opts?: { voice?: boolean }) => {
     const t = text.trim();
     if (!t || running) return;
     setDraft('');
-    onSend(t);
+    onSend(t, opts);
   };
+  const voiceSupported = config.voiceEnabled && typeof window !== 'undefined' && 'MediaRecorder' in window && !!navigator.mediaDevices?.getUserMedia;
 
   return (
     <section className="conversation" aria-label="Conversation">
@@ -294,7 +402,7 @@ function Conversation(props: {
           </div>
         )}
         {turns.map((t) => (
-          <TurnView key={t.id} turn={t} user={user} agentName={config.agentName} onSend={submit} onShowLedger={onShowLedger} />
+          <TurnView key={t.id} turn={t} user={user} agentName={config.agentName} canListen={config.voiceEnabled} onSend={submit} onShowLedger={onShowLedger} />
         ))}
         <div ref={endRef} />
       </div>
@@ -315,6 +423,7 @@ function Conversation(props: {
             maxLength={2000}
             aria-label="Message"
           />
+          {voiceSupported && <VoiceButton disabled={running} agentName={config.agentName} onText={(t) => submit(t, { voice: true })} />}
           <button type="submit" className="send" disabled={running || !draft.trim()}>Send</button>
         </div>
         {config.allowUnprotected && user.role === 'owner' && (
@@ -331,7 +440,7 @@ function Conversation(props: {
   );
 }
 
-function TurnView({ turn, user, agentName, onSend, onShowLedger }: { turn: Turn; user: User; agentName: string; onSend: (m: string) => void; onShowLedger: () => void }) {
+function TurnView({ turn, user, agentName, canListen, onSend, onShowLedger }: { turn: Turn; user: User; agentName: string; canListen: boolean; onSend: (m: string) => void; onShowLedger: () => void }) {
   const slips = useMemo(() => deriveSlips(turn.events), [turn.events]);
   const final = turn.events.find((e) => e.type === 'final') as Extract<AgentEvent, { type: 'final' }> | undefined;
   const error = turn.error ?? (turn.events.find((e) => e.type === 'error') as any)?.message;
@@ -362,6 +471,7 @@ function TurnView({ turn, user, agentName, onSend, onShowLedger }: { turn: Turn;
         {held && <p className="waiting">Waiting for approval in the ArmorIQ console. The request continues once someone decides.</p>}
         {cards}
         {final && <Prose text={final.text} />}
+        {final && canListen && <ListenButton text={final.text} />}
         {turn.running && !final && <p className="typing" aria-live="polite">Working</p>}
         {!turn.running && !final && !error && <p className="hint">This request didn’t finish here. It may have been interrupted, or it’s still running on another device.</p>}
         {error && <p className="error">{error}</p>}

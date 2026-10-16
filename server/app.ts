@@ -16,12 +16,14 @@ import { getModel } from './model.js';
 import { runAgent } from './agent/run.js';
 import { codeMatches, createChatLimiter } from './limits.js';
 import { getChat, listChats, saveTurn } from './domain/chats.js';
+import { createVoice, MAX_AUDIO_BYTES, MAX_SPEAK_CHARS, VoiceError, type Voice } from './voice.js';
 import type { AgentEvent } from './agent/events.js';
 
 export interface AppOverrides {
   /** Tests and local previews only: inject a model and ArmorIQ guard instead of loading them from config. */
   model?: () => Promise<import('@langchain/core/language_models/chat_models').BaseChatModel>;
   guard?: () => import('./agent/run.js').Guard | null;
+  voice?: Voice | null;
 }
 
 export function createApp(db: DB, overrides: AppOverrides = {}) {
@@ -47,6 +49,13 @@ export function createApp(db: DB, overrides: AppOverrides = {}) {
   const checkpointer = new MemorySaver(); // conversation memory, keyed by `${userId}:${chatId}`
   const running = new Set<string>(); // one run per user at a time
   const limiter = createChatLimiter(config.chatLimitPerHour, config.chatLimitPerDay);
+  const voiceLimiter = createChatLimiter(config.voiceLimitPerHour, config.voiceLimitPerDay);
+  const voice: Voice | null =
+    overrides.voice !== undefined
+      ? overrides.voice
+      : config.elevenLabsApiKey
+        ? createVoice({ apiKey: config.elevenLabsApiKey, sttModel: config.elevenLabsSttModel, ttsModel: config.elevenLabsTtsModel, voiceId: config.elevenLabsVoiceId })
+        : null;
 
   // ── Public ────────────────────────────────────────────────────────
   app.get('/api/health', (_req, res) => {
@@ -64,6 +73,7 @@ export function createApp(db: DB, overrides: AppOverrides = {}) {
       armoriqConsoleUrl: config.armoriqConsoleUrl,
       approvalWaitSeconds: config.approvalWaitSeconds,
       requireAccessCode: config.demoAccessCode.length > 0,
+      voiceEnabled: voice !== null,
     });
   });
 
@@ -140,6 +150,58 @@ export function createApp(db: DB, overrides: AppOverrides = {}) {
       audit(db, { businessId: actor.businessId, userId: actor.userId, source: 'app', action: 'reject_purchase_order', decision: 'blocked', reason: 'Rejected by a human', payload: { order_id: id } });
       return { ...result, order: ops.getPurchaseOrder(db, actor, id) };
     });
+  });
+
+  // ── Voice (ElevenLabs) ───────────────────────────────────────────
+  const voiceGate = (req: Request, res: Response): boolean => {
+    if (!voice) {
+      res.status(404).json({ error: 'Voice is not configured.' });
+      return false;
+    }
+    const limit = voiceLimiter.take(`${req.actor!.userId}:${req.ip}`);
+    if (!limit.ok) {
+      res.status(429).json({ error: limit.reason });
+      return false;
+    }
+    return true;
+  };
+  const voiceError = (res: Response, err: unknown) => {
+    const status = err instanceof VoiceError ? err.status : 502;
+    const message = err instanceof Error && err.name === 'TimeoutError' ? 'ElevenLabs took too long to respond.' : (err as Error).message;
+    console.warn('[voice]', message);
+    res.status(status).json({ error: message });
+  };
+
+  app.post(
+    '/api/voice/transcribe',
+    auth,
+    express.raw({ type: ['audio/*', 'video/webm', 'application/octet-stream'], limit: MAX_AUDIO_BYTES }),
+    async (req: Request, res: Response) => {
+      if (!voiceGate(req, res)) return;
+      try {
+        const audio = Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0);
+        res.json(await voice!.transcribe(audio, String(req.header('content-type') ?? 'audio/webm')));
+      } catch (err) {
+        voiceError(res, err);
+      }
+    },
+  );
+
+  app.post('/api/voice/speak', auth, async (req: Request, res: Response) => {
+    const text = typeof req.body?.text === 'string' ? req.body.text : '';
+    if (!text.trim() || text.length > MAX_SPEAK_CHARS * 4) {
+      res.status(400).json({ error: 'Nothing to read aloud.' });
+      return;
+    }
+    if (!voiceGate(req, res)) return;
+    try {
+      const { audio, contentType } = await voice!.speak(text);
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Cache-Control', 'no-store');
+      res.end(Buffer.from(audio));
+    } catch (err) {
+      voiceError(res, err);
+    }
   });
 
   app.get('/api/chats', auth, (req, res) => {

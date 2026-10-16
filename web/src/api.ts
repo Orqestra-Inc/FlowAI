@@ -6,6 +6,7 @@ export interface User { userId: string; email: string; businessId: string; role:
 export interface AppConfig {
   appName: string; agentName: string; demoMode: boolean; allowUnprotected: boolean; model: string;
   armoriqConfigured: boolean; armoriqConsoleUrl: string; approvalWaitSeconds: number; requireAccessCode: boolean;
+  voiceEnabled: boolean;
 }
 export interface PoItem { item_id: string; item_name: string; unit: string; quantity: number; unit_price: number; line_total: number }
 export interface PurchaseOrder {
@@ -105,6 +106,39 @@ export function newId(): string {
   if (c && typeof c.getRandomValues === 'function') c.getRandomValues(bytes);
   else for (let i = 0; i < 16; i++) bytes[i] = Math.floor(Math.random() * 256);
   return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+/** Speech-to-text through our server (ElevenLabs key never reaches the browser). */
+export async function transcribe(audio: Blob): Promise<{ text: string; language: string | null }> {
+  const res = await fetch('/api/voice/transcribe', {
+    method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': audio.type || 'audio/webm' }, body: audio,
+  });
+  const body = await res.json().catch(() => null);
+  if (!res.ok) throw new ApiError(body?.error ?? `Transcription failed (${res.status})`);
+  return body;
+}
+
+/** Text-to-speech through our server. Plays one reply at a time. */
+let current: HTMLAudioElement | null = null;
+export async function speak(text: string): Promise<HTMLAudioElement> {
+  const res = await fetch('/api/voice/speak', {
+    method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new ApiError(body?.error ?? `Speech failed (${res.status})`);
+  }
+  const url = URL.createObjectURL(await res.blob());
+  current?.pause();
+  const audio = new Audio(url);
+  audio.addEventListener('ended', () => URL.revokeObjectURL(url));
+  current = audio;
+  await audio.play();
+  return audio;
+}
+export function stopSpeaking() {
+  current?.pause();
+  current = null;
 }
 
 export const kes = (n: number) => `KSh ${Math.round(n).toLocaleString('en-KE')}`;

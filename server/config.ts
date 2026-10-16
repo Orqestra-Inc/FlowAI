@@ -47,6 +47,14 @@ export const config = {
   chatLimitPerHour: num('CHAT_LIMIT_PER_HOUR', 40),
   chatLimitPerDay: num('CHAT_LIMIT_PER_DAY', 400),
 
+  /** ElevenLabs voice (optional). Without a key, voice controls are hidden. */
+  elevenLabsApiKey: process.env.ELEVENLABS_API_KEY ?? '',
+  elevenLabsSttModel: process.env.ELEVENLABS_STT_MODEL ?? 'scribe_v2',
+  elevenLabsTtsModel: process.env.ELEVENLABS_TTS_MODEL ?? 'eleven_multilingual_v2',
+  elevenLabsVoiceId: process.env.ELEVENLABS_VOICE_ID ?? 'JBFqnCBsd6RMkjVDRZzb',
+  voiceLimitPerHour: num('VOICE_LIMIT_PER_HOUR', 60),
+  voiceLimitPerDay: num('VOICE_LIMIT_PER_DAY', 600),
+
   demoMode,
   /** Honoured only in demo mode: lets the owner run one request without ArmorIQ. */
   allowUnprotected: demoMode && flag('DEMO_ALLOW_UNPROTECTED'),

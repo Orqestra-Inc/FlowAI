@@ -247,6 +247,22 @@ button:disabled { cursor: not-allowed; opacity: 0.55; }
   background: var(--sheet);
 }
 .send { padding: 0 18px; border: none; border-radius: var(--radius-m); background: var(--ink); color: var(--paper); font-weight: 600; }
+.composer-row { flex-wrap: wrap; }
+.composer-row textarea { min-width: 0; }
+.speak {
+  padding: 0 14px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-m);
+  background: var(--sheet);
+  color: var(--ink);
+  font-weight: 600;
+}
+.speak:hover:not(:disabled) { border-color: var(--ballpoint); color: var(--ballpoint); }
+.speak.is-recording { background: var(--block); border-color: var(--block); color: #fff; }
+.speak.is-recording::before { content: '● '; animation: blink 1s steps(2) infinite; }
+.voice-error { flex-basis: 100%; margin: 6px 0 0; font-size: 0.85rem; }
+.listen { margin-top: -4px; }
+.listen .quiet { font-size: 0.85rem; }
 .toggle { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 0.85rem; color: var(--block); }
 
 /* ── Action ledger (the carbon-copy book) ────────────────── */

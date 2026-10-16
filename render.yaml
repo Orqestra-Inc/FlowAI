@@ -21,6 +21,8 @@ services:
         value: google-genai:gemini-3.8-flash
       - key: GOOGLE_API_KEY
         sync: false           # or set OPENAI_API_KEY / ANTHROPIC_API_KEY and change LLM_MODEL
+      - key: ELEVENLABS_API_KEY
+        sync: false           # optional: enables "Ask Flow by voice" and spoken replies
       - key: ARMORIQ_AGENT_NAME
         value: orqestra-agent
       - key: ARMORIQ_MCP_NAME
