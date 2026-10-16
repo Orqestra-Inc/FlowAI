@@ -224,6 +224,19 @@ function Desk({ config, user, onSignOut, onSwitch }: { config: AppConfig; user: 
 }
 
 /** Hold-free voice capture: tap to start, tap to stop (auto-stops at 60 s). Audio goes to our server, then ElevenLabs. */
+/** Inline icons (no icon library). Stroke uses currentColor so they follow button colours. */
+const svgProps = { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, 'aria-hidden': true };
+const MicIcon = () => (
+  <svg {...svgProps}><rect x="9" y="2" width="6" height="12" rx="3" /><path d="M5 10a7 7 0 0 0 14 0" /><path d="M12 17v4" /><path d="M8 21h8" /></svg>
+);
+const StopIcon = () => (
+  <svg {...svgProps}><rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor" /></svg>
+);
+const SendIcon = () => (
+  <svg {...svgProps}><path d="M12 19V5" /><path d="M5 12l7-7 7 7" /></svg>
+);
+const Spinner = () => <span className="spinner" aria-hidden="true" />;
+
 function VoiceButton({ disabled, agentName, onText }: { disabled: boolean; agentName: string; onText: (text: string) => void }) {
   const [state, setState] = useState<'idle' | 'recording' | 'transcribing'>('idle');
   const [error, setError] = useState('');
@@ -254,7 +267,7 @@ function VoiceButton({ disabled, agentName, onText }: { disabled: boolean; agent
       const blob = new Blob(chunks, { type: rec.mimeType || 'audio/webm' });
       if (blob.size < 2_000) {
         setState('idle');
-        setError('That was too short. Tap Speak, talk, then tap Stop.');
+        setError('That was too short. Tap the mic, talk, then tap stop.');
         return;
       }
       setState('transcribing');
@@ -275,18 +288,17 @@ function VoiceButton({ disabled, agentName, onText }: { disabled: boolean; agent
 
   useEffect(() => () => stop(), []);
 
-  const label = state === 'recording' ? 'Stop' : state === 'transcribing' ? 'Listening…' : 'Speak';
   return (
     <>
       <button
         type="button"
-        className={`speak ${state === 'recording' ? 'is-recording' : ''}`}
+        className={`icon-btn speak ${state === 'recording' ? 'is-recording' : ''}`}
         disabled={disabled || state === 'transcribing'}
         onClick={() => (state === 'recording' ? stop() : start())}
-        aria-label={state === 'recording' ? 'Stop recording and send' : `Ask ${agentName} by voice`}
-        title={`Ask ${agentName} by voice (ElevenLabs)`}
+        aria-label={state === 'recording' ? 'Stop recording and send' : state === 'transcribing' ? 'Transcribing' : `Ask ${agentName} by voice`}
+        title={state === 'recording' ? 'Stop and send' : state === 'transcribing' ? 'Transcribing…' : `Ask ${agentName} by voice`}
       >
-        {label}
+        {state === 'recording' ? <StopIcon /> : state === 'transcribing' ? <Spinner /> : <MicIcon />}
       </button>
       {error && <p className="error voice-error">{error}</p>}
     </>
@@ -424,7 +436,7 @@ function Conversation(props: {
             aria-label="Message"
           />
           {voiceSupported && <VoiceButton disabled={running} agentName={config.agentName} onText={(t) => submit(t, { voice: true })} />}
-          <button type="submit" className="send" disabled={running || !draft.trim()}>Send</button>
+          <button type="submit" className="icon-btn send" disabled={running || !draft.trim()} aria-label="Send" title="Send">{running ? <Spinner /> : <SendIcon />}</button>
         </div>
         {config.allowUnprotected && user.role === 'owner' && (
           <label className="toggle">

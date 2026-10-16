@@ -49,7 +49,7 @@ Point at the action ledger: each step stamped **Allowed**.
 Switch to Grace (owner). Open the draft, click **Approve order**.
 > "Only a person can approve. The approval is tied to this exact supplier, price and total, it expires, and the person who drafted it can't approve it."
 Click **Ask Flow to place it**. Show **Placed (simulated)** and the reference.
-Voice moment (10 s): tap **Speak**, say *"Which bills are due this week?"*, tap **Stop**. Flow answers and reads the reply aloud.
+Voice moment (10 s): tap the **mic**, say *"Which bills are due this week?"*, tap **stop**. Flow answers and reads the reply aloud.
 > "Owners are often on the move, so they can just ask out loud. Voice runs on ElevenLabs, and spoken requests go through the same ArmorIQ checks."
 
 **3. The attack, and the ArmorIQ console (1:50–3:10)**
