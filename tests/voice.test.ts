@@ -39,7 +39,7 @@ describe('ElevenLabs voice', () => {
   it('turns provider failures into clear errors and rejects empty audio', async () => {
     const r = recorder(new Response(JSON.stringify({ detail: { status: 'invalid_api_key' } }), { status: 401 }));
     const voice = createVoice({ ...opts, fetchImpl: r.fetchImpl });
-    await expect(voice.transcribe(Buffer.alloc(5000), 'audio/webm')).rejects.toThrow('ElevenLabs rejected the API key.');
+    await expect(voice.transcribe(Buffer.alloc(5000), 'audio/webm')).rejects.toThrow('ElevenLabs rejected the request');
     await expect(voice.transcribe(Buffer.alloc(0), 'audio/webm')).rejects.toBeInstanceOf(VoiceError);
     expect(r.calls).toHaveLength(1); // empty audio never reaches ElevenLabs
   });

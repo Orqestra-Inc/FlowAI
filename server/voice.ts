@@ -48,7 +48,10 @@ async function describeFailure(res: Response): Promise<string> {
   } catch {
     /* not json */
   }
-  if (res.status === 401) return 'ElevenLabs rejected the API key.';
+  if (res.status === 401) {
+    if (/unusual_activity/i.test(detail)) return 'ElevenLabs blocked free-tier use from this server (unusual activity). A paid plan or hackathon credits fix this.';
+    return `ElevenLabs rejected the request (check the key and that it has Speech to Text and Text to Speech access)${detail ? `: ${detail}` : ''}.`;
+  }
   if (res.status === 429) return 'ElevenLabs rate limit or quota reached. Try again shortly.';
   return `ElevenLabs error ${res.status}${detail ? `: ${detail}` : ''}`;
 }
