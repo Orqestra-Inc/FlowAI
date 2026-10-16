@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { api, kes, newId, streamChat, type ActivityRow, type AgentEvent, type AppConfig, type PurchaseOrder, type User } from './api';
+import { api, chatKey, kes, newId, store, streamChat, type ChatSummary, type StoredTurn, type ActivityRow, type AgentEvent, type AppConfig, type PurchaseOrder, type User } from './api';
 import { argSummary, deriveSlips, STAMP_TEXT, TOOL_LABEL, type Slip } from './ledger';
 
 interface Turn {
@@ -60,7 +60,10 @@ function SignIn({ config, onSignedIn }: { config: AppConfig; onSignedIn: (u: Use
     setSigningIn(email);
     api
       .login(email, code)
-      .then((r) => onSignedIn(r.user))
+      .then((r) => {
+        store.remove(chatKey(r.user.userId)); // a fresh sign-in starts a new conversation
+        onSignedIn(r.user);
+      })
       .catch((e) => setError(e.message))
       .finally(() => setSigningIn(''));
   };
@@ -107,12 +110,28 @@ function Desk({ config, user, onSignOut, onSwitch }: { config: AppConfig; user: 
   const [unprotected, setUnprotected] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  // A new person gets a new conversation.
-  useEffect(() => {
-    setTurns([]);
+  const openChat = useCallback(
+    (id: string) => {
+      setChatId(id);
+      setTurns([]);
+      store.set(chatKey(user.userId), id);
+      api.chat(id).then((r) => setTurns(r.turns.map(fromStored))).catch(() => setTurns([]));
+    },
+    [user.userId],
+  );
+  const newChat = useCallback(() => {
+    store.remove(chatKey(user.userId));
     setChatId(newId().slice(0, 12));
-    setUnprotected(false);
+    setTurns([]);
   }, [user.userId]);
+
+  // On load (or a refresh), reopen this person's current conversation; otherwise start a new one.
+  useEffect(() => {
+    setUnprotected(false);
+    const stored = store.get(chatKey(user.userId));
+    if (stored) openChat(stored);
+    else newChat();
+  }, [user.userId, openChat, newChat]);
 
   const running = turns.some((t) => t.running);
   const current = turns[turns.length - 1];
@@ -122,6 +141,7 @@ function Desk({ config, user, onSignOut, onSwitch }: { config: AppConfig; user: 
       const id = newId();
       const turn: Turn = { id, message, protected: !unprotected, events: [], running: true };
       setTurns((ts) => [...ts, turn]);
+      store.set(chatKey(user.userId), chatId);
       const update = (fn: (t: Turn) => Turn) => setTurns((ts) => ts.map((t) => (t.id === id ? fn(t) : t)));
       try {
         await streamChat({ message, chatId, unprotected }, (e) => update((t) => ({ ...t, events: [...t.events, e] })));
@@ -132,11 +152,12 @@ function Desk({ config, user, onSignOut, onSwitch }: { config: AppConfig; user: 
         setRefreshKey((k) => k + 1);
       }
     },
-    [chatId, unprotected],
+    [chatId, unprotected, user.userId],
   );
 
   const switchTo = async (email: string) => {
     const r = await api.login(email);
+    store.remove(chatKey(r.user.userId));
     onSwitch(r.user);
   };
 
@@ -149,6 +170,7 @@ function Desk({ config, user, onSignOut, onSwitch }: { config: AppConfig; user: 
           <button aria-current={view === 'chat'} onClick={() => setView('chat')}>Ask {config.agentName}</button>
           <button aria-current={view === 'activity'} onClick={() => setView('activity')}>Activity</button>
         </nav>
+        <RecentChats refreshKey={refreshKey} currentChatId={chatId} disabled={running} onOpen={(id) => { setView('chat'); openChat(id); }} onNew={() => { setView('chat'); newChat(); }} />
         <Overview refreshKey={refreshKey} />
         <div className="rail-foot">
           <label className="field">
@@ -160,7 +182,7 @@ function Desk({ config, user, onSignOut, onSwitch }: { config: AppConfig; user: 
             </select>
           </label>
           {config.demoMode && (
-            <button className="quiet" disabled={running} onClick={() => api.reset().then(() => { setTurns([]); setRefreshKey((k) => k + 1); })}>
+            <button className="quiet" disabled={running} onClick={() => api.reset().then(() => { newChat(); setRefreshKey((k) => k + 1); })}>
               Reset demo data
             </button>
           )}
@@ -192,6 +214,34 @@ function Desk({ config, user, onSignOut, onSwitch }: { config: AppConfig; user: 
 
       <Ledger turn={current} config={config} open={ledgerOpen} onClose={() => setLedgerOpen(false)} />
     </div>
+  );
+}
+
+function fromStored(t: StoredTurn): Turn {
+  return { id: t.id, message: t.message, protected: t.protected, events: t.events, running: false, error: t.error ?? undefined };
+}
+
+function RecentChats(props: { refreshKey: number; currentChatId: string; disabled: boolean; onOpen: (id: string) => void; onNew: () => void }) {
+  const { refreshKey, currentChatId, disabled, onOpen, onNew } = props;
+  const [chats, setChats] = useState<ChatSummary[]>([]);
+  useEffect(() => {
+    api.chats().then(setChats).catch(() => setChats([]));
+  }, [refreshKey, currentChatId]);
+  return (
+    <section className="recent" aria-label="Conversations">
+      <button className="quiet new-chat" onClick={onNew} disabled={disabled}>New conversation</button>
+      {chats.length > 0 && (
+        <ul>
+          {chats.map((c) => (
+            <li key={c.chatId}>
+              <button aria-current={c.chatId === currentChatId} disabled={disabled} onClick={() => onOpen(c.chatId)} title={c.title}>
+                {c.title}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
 
@@ -313,6 +363,7 @@ function TurnView({ turn, user, agentName, onSend, onShowLedger }: { turn: Turn;
         {cards}
         {final && <Prose text={final.text} />}
         {turn.running && !final && <p className="typing" aria-live="polite">Working</p>}
+        {!turn.running && !final && !error && <p className="hint">This request didn’t finish here. It may have been interrupted, or it’s still running on another device.</p>}
         {error && <p className="error">{error}</p>}
       </div>
     </article>

@@ -15,6 +15,7 @@ import { getGuard, checkGuard } from './armoriq.js';
 import { getModel } from './model.js';
 import { runAgent } from './agent/run.js';
 import { codeMatches, createChatLimiter } from './limits.js';
+import { getChat, listChats, saveTurn } from './domain/chats.js';
 import type { AgentEvent } from './agent/events.js';
 
 export interface AppOverrides {
@@ -141,6 +142,19 @@ export function createApp(db: DB, overrides: AppOverrides = {}) {
     });
   });
 
+  app.get('/api/chats', auth, (req, res) => {
+    res.json(listChats(db, req.actor!));
+  });
+
+  app.get('/api/chats/:chatId', auth, (req, res) => {
+    const chatId = String(req.params.chatId);
+    if (!/^[A-Za-z0-9_-]{1,64}$/.test(chatId)) {
+      res.status(400).json({ error: 'Invalid conversation id.' });
+      return;
+    }
+    res.json({ chatId, turns: getChat(db, req.actor!, chatId) });
+  });
+
   app.get('/api/activity', auth, (req, res) => {
     res.json(listAudit(db, req.actor!.businessId, 150));
   });
@@ -213,7 +227,16 @@ export function createApp(db: DB, overrides: AppOverrides = {}) {
       open = false;
       controller.abort();
     });
+    // Persist the turn (and every event) so the conversation survives refreshes and opens on other devices.
+    const turn = { id: crypto.randomUUID(), chatId, message, protected: isProtected, events: [] as AgentEvent[], createdAt: new Date().toISOString() };
+    saveTurn(db, actor, turn);
+    let lastSave = Date.now();
     const emit = (event: AgentEvent) => {
+      turn.events.push(event);
+      if (Date.now() - lastSave > 2_000 || event.type === 'guard') {
+        saveTurn(db, actor, turn);
+        lastSave = Date.now();
+      }
       if (open) res.write(`data: ${JSON.stringify(event)}\n\n`);
     };
 
@@ -228,6 +251,11 @@ export function createApp(db: DB, overrides: AppOverrides = {}) {
     } catch (err) {
       emit({ type: 'error', message: (err as Error).message });
     } finally {
+      try {
+        saveTurn(db, actor, turn);
+      } catch (err) {
+        console.warn('[orqestra] could not save chat turn:', (err as Error).message);
+      }
       clearInterval(heartbeat);
       running.delete(actor.userId);
       if (open) res.end();

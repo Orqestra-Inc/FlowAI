@@ -18,6 +18,23 @@ export interface ActivityRow {
   decision: 'allowed' | 'held' | 'approved' | 'blocked' | 'failed' | 'completed' | 'info'; reason: string; payload_summary: string; created_at: string;
 }
 
+export interface ChatSummary { chatId: string; title: string; turns: number; startedAt: string; updatedAt: string }
+export interface StoredTurn { id: string; message: string; protected: boolean; events: AgentEvent[]; error: string | null; created_at: string }
+
+/** localStorage that never throws (private windows, blocked storage). Used only to remember the open conversation. */
+export const store = {
+  get(key: string): string | null {
+    try { return localStorage.getItem(key); } catch { return null; }
+  },
+  set(key: string, value: string) {
+    try { localStorage.setItem(key, value); } catch { /* ignore */ }
+  },
+  remove(key: string) {
+    try { localStorage.removeItem(key); } catch { /* ignore */ }
+  },
+};
+export const chatKey = (userId: string) => `orq.chat.${userId}`;
+
 export class ApiError extends Error {}
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -38,6 +55,8 @@ export const api = {
   approve: (id: string) => request<{ approval_id: string; order: PurchaseOrder }>(`/api/purchase-orders/${encodeURIComponent(id)}/approve`, { method: 'POST' }),
   reject: (id: string) => request<{ order: PurchaseOrder }>(`/api/purchase-orders/${encodeURIComponent(id)}/reject`, { method: 'POST' }),
   activity: () => request<ActivityRow[]>('/api/activity'),
+  chats: () => request<ChatSummary[]>('/api/chats'),
+  chat: (chatId: string) => request<{ chatId: string; turns: StoredTurn[] }>(`/api/chats/${encodeURIComponent(chatId)}`),
   reset: () => request('/api/demo/reset', { method: 'POST' }),
 };
 

@@ -103,6 +103,18 @@ CREATE TABLE IF NOT EXISTS data_exports (
   record_count INTEGER NOT NULL,
   created_at TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS chat_turns (
+  id TEXT PRIMARY KEY,
+  business_id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  chat_id TEXT NOT NULL,
+  message TEXT NOT NULL,
+  protected INTEGER NOT NULL,
+  events_json TEXT NOT NULL DEFAULT '[]',
+  error TEXT,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS chat_turns_by_user ON chat_turns (user_id, chat_id, created_at);
 CREATE TABLE IF NOT EXISTS audit_events (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   business_id TEXT NOT NULL,
@@ -147,7 +159,7 @@ export const INJECTED_BILL_NOTE = [
 /** Wipe and reseed all demo data. Dates are relative to `now` so the demo never goes stale. */
 export function seed(db: DB, now = new Date()): void {
   const tables = [
-    'audit_events', 'data_exports', 'approvals', 'purchase_orders', 'payroll_summary', 'cash_accounts',
+    'chat_turns', 'audit_events', 'data_exports', 'approvals', 'purchase_orders', 'payroll_summary', 'cash_accounts',
     'bills', 'supplier_prices', 'suppliers', 'inventory_items', 'users', 'businesses',
   ];
   const tx = db.transaction(() => {
