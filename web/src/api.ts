@@ -5,7 +5,7 @@ export type { AgentEvent };
 export interface User { userId: string; email: string; businessId: string; role: 'owner' | 'procurement' | 'accountant'; displayName: string }
 export interface AppConfig {
   appName: string; agentName: string; demoMode: boolean; allowUnprotected: boolean; model: string;
-  armoriqConfigured: boolean; armoriqConsoleUrl: string; approvalWaitSeconds: number;
+  armoriqConfigured: boolean; armoriqConsoleUrl: string; approvalWaitSeconds: number; requireAccessCode: boolean;
 }
 export interface PoItem { item_id: string; item_name: string; unit: string; quantity: number; unit_price: number; line_total: number }
 export interface PurchaseOrder {
@@ -31,7 +31,7 @@ export const api = {
   config: () => request<AppConfig>('/api/config'),
   me: () => request<{ user: User }>('/api/me'),
   demoUsers: () => request<Array<{ email: string; role: User['role']; display_name: string }>>('/api/demo/users'),
-  login: (email: string) => request<{ user: User }>('/api/auth/login', { method: 'POST', body: JSON.stringify({ email }) }),
+  login: (email: string, code?: string) => request<{ user: User }>('/api/auth/login', { method: 'POST', body: JSON.stringify({ email, code }) }),
   logout: () => request('/api/auth/logout', { method: 'POST' }),
   overview: () => request<any>('/api/overview'),
   order: (id: string) => request<PurchaseOrder>(`/api/purchase-orders/${encodeURIComponent(id)}`),

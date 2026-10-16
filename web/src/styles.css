@@ -72,6 +72,8 @@ button:disabled { cursor: not-allowed; opacity: 0.55; }
 .account:hover { border-color: var(--ballpoint); }
 .account-name { font-weight: 650; }
 .account-role { color: var(--ballpoint); text-transform: capitalize; }
+.access { margin-bottom: 14px; max-width: 320px; }
+.access input { padding: 9px 10px; border: 1px solid var(--rule); border-radius: var(--radius-s); background: var(--sheet); color: var(--ink); font-size: 1rem; }
 .account-note { grid-column: 1 / -1; color: var(--muted); font-size: 0.9rem; }
 .signin .fineprint { margin-top: 24px; }
 

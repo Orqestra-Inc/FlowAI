@@ -14,6 +14,7 @@ import { mcpRouter } from './mcp.js';
 import { getGuard, checkGuard } from './armoriq.js';
 import { getModel } from './model.js';
 import { runAgent } from './agent/run.js';
+import { codeMatches, createChatLimiter } from './limits.js';
 import type { AgentEvent } from './agent/events.js';
 
 export interface AppOverrides {
@@ -44,6 +45,7 @@ export function createApp(db: DB, overrides: AppOverrides = {}) {
   const auth = requireActor(db);
   const checkpointer = new MemorySaver(); // conversation memory, keyed by `${userId}:${chatId}`
   const running = new Set<string>(); // one run per user at a time
+  const limiter = createChatLimiter(config.chatLimitPerHour, config.chatLimitPerDay);
 
   // ── Public ────────────────────────────────────────────────────────
   app.get('/api/health', (_req, res) => {
@@ -60,6 +62,7 @@ export function createApp(db: DB, overrides: AppOverrides = {}) {
       armoriqConfigured: loadGuard() !== null,
       armoriqConsoleUrl: config.armoriqConsoleUrl,
       approvalWaitSeconds: config.approvalWaitSeconds,
+      requireAccessCode: config.demoAccessCode.length > 0,
     });
   });
 
@@ -75,6 +78,12 @@ export function createApp(db: DB, overrides: AppOverrides = {}) {
     // Demo sign-in: choose a seeded account. A real deployment replaces this with proper authentication.
     if (!config.demoMode) {
       res.status(404).end();
+      return;
+    }
+    // Switching between demo accounts is allowed once signed in; a fresh sign-in needs the access code (if one is set).
+    const alreadySignedIn = typeof req.signedCookies?.[SESSION_COOKIE] === 'string';
+    if (config.demoAccessCode && !alreadySignedIn && !codeMatches(req.body?.code, config.demoAccessCode)) {
+      res.status(401).json({ error: 'That access code is not right.' });
       return;
     }
     const actor = typeof req.body?.email === 'string' ? actorByEmail(db, req.body.email) : null;
@@ -169,6 +178,11 @@ export function createApp(db: DB, overrides: AppOverrides = {}) {
     const guard = loadGuard();
     if (isProtected && !guard) {
       res.status(503).json({ error: 'ArmorIQ is not configured. Requests are refused until it is (fail-closed).' });
+      return;
+    }
+    const limit = limiter.take(`${actor.userId}:${req.ip}`);
+    if (!limit.ok) {
+      res.status(429).json({ error: limit.reason });
       return;
     }
     if (running.has(actor.userId)) {

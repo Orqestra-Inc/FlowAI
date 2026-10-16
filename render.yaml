@@ -27,6 +27,12 @@ services:
         value: orqestra-erp
       - key: APPROVAL_WAIT_SECONDS
         value: "90"
+      - key: DEMO_ACCESS_CODE
+        sync: false           # judges type this on the sign-in screen; put it in your submission notes
+      - key: CHAT_LIMIT_PER_HOUR
+        value: "40"
+      - key: CHAT_LIMIT_PER_DAY
+        value: "400"
       - key: DEMO_MODE
         value: "1"
       - key: DEMO_ALLOW_UNPROTECTED

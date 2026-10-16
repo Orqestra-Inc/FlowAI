@@ -51,6 +51,7 @@ export function App() {
 function SignIn({ config, onSignedIn }: { config: AppConfig; onSignedIn: (u: User) => void }) {
   const [accounts, setAccounts] = useState<Array<{ email: string; role: User['role']; display_name: string }>>([]);
   const [error, setError] = useState('');
+  const [code, setCode] = useState('');
   useEffect(() => {
     api.demoUsers().then(setAccounts).catch(() => setError('Demo accounts are unavailable.'));
   }, []);
@@ -62,9 +63,15 @@ function SignIn({ config, onSignedIn }: { config: AppConfig; onSignedIn: (u: Use
         <p className="lede">
           Baraka Fresh Distributors is a demo wholesaler in Nairobi. Sign in as one of its people to see what each one is allowed to do.
         </p>
+        {config.requireAccessCode && (
+          <label className="field access">
+            <span>Access code</span>
+            <input value={code} onChange={(e) => setCode(e.target.value)} autoComplete="off" placeholder="From the submission notes" />
+          </label>
+        )}
         <div className="accounts">
           {accounts.map((a) => (
-            <button key={a.email} className="account" onClick={() => api.login(a.email).then((r) => onSignedIn(r.user)).catch((e) => setError(e.message))}>
+            <button key={a.email} className="account" onClick={() => api.login(a.email, code).then((r) => onSignedIn(r.user)).catch((e) => setError(e.message))}>
               <span className="account-name">{a.display_name.replace(/ \(.*\)$/, '')}</span>
               <span className="account-role">{a.role}</span>
               <span className="account-note">{ROLE_NOTE[a.role]}</span>

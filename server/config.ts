@@ -41,6 +41,12 @@ export const config = {
   maxModelCalls: num('MAX_MODEL_CALLS', 10),
   maxPoAmount: num('MAX_PO_AMOUNT', 300_000),
 
+  /** If set, the demo sign-in screen asks for this code. Share it only with judges and testers. */
+  demoAccessCode: process.env.DEMO_ACCESS_CODE ?? '',
+  /** Protects the model quota on a public demo: chat requests per signed-in browser per hour, and per day overall. */
+  chatLimitPerHour: num('CHAT_LIMIT_PER_HOUR', 40),
+  chatLimitPerDay: num('CHAT_LIMIT_PER_DAY', 400),
+
   demoMode,
   /** Honoured only in demo mode: lets the owner run one request without ArmorIQ. */
   allowUnprotected: demoMode && flag('DEMO_ALLOW_UNPROTECTED'),
