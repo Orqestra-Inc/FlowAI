@@ -94,7 +94,7 @@ npm run check               # key valid? agent + MCP names registered? /mcp answ
 During development: `npm run dev` (API on :8787, Vite on :5173).
 
 **Choose any model** with `LLM_MODEL` in LangChain `provider:model` form, plus that provider’s key:
-`google-genai:gemini-2.5-flash` (`GOOGLE_API_KEY`), `openai:gpt-4.1-mini` (`OPENAI_API_KEY`), `anthropic:claude-haiku-4-5` (`ANTHROPIC_API_KEY`). After switching, run `npm run eval`.
+`google-genai:gemini-3.8-flash` (`GOOGLE_API_KEY`), `openai:gpt-4.1-mini` (`OPENAI_API_KEY`), `anthropic:claude-haiku-4-5` (`ANTHROPIC_API_KEY`). After switching, run `npm run eval`.
 
 **No keys yet?** `npm run build && npm run preview` runs the real app, agent and ArmorIQ adapter with a scripted model and simulated ArmorIQ decisions on http://localhost:8790. It’s for UI work and rehearsal only.
 

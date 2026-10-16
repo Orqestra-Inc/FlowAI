@@ -18,7 +18,7 @@ services:
       - key: ARMORIQ_API_KEY
         sync: false
       - key: LLM_MODEL
-        value: google-genai:gemini-2.5-flash
+        value: google-genai:gemini-3.8-flash
       - key: GOOGLE_API_KEY
         sync: false           # or set OPENAI_API_KEY / ANTHROPIC_API_KEY and change LLM_MODEL
       - key: ARMORIQ_AGENT_NAME

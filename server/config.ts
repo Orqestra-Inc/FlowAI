@@ -28,7 +28,7 @@ export const config = {
   sessionSecret: process.env.SESSION_SECRET ?? '',
   databasePath: process.env.DATABASE_PATH ?? './data/orqestra.db',
 
-  llmModel: process.env.LLM_MODEL ?? 'google-genai:gemini-2.5-flash',
+  llmModel: process.env.LLM_MODEL ?? 'google-genai:gemini-3.8-flash',
 
   armoriqApiKey: process.env.ARMORIQ_API_KEY ?? '',
   armoriqAgentName: process.env.ARMORIQ_AGENT_NAME ?? 'orqestra-agent',

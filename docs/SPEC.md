@@ -164,7 +164,7 @@ Once per process:
 ```ts
 const client = new MCPClient / MultiServerMCPClient({ orqestra: { url: config.mcpUrl, headers: { Authorization: `Bearer ${config.mcpBearer}` } } }); // from @langchain/mcp-adapters
 const tools = await client.getTools();                     // tool names must map to ARMORIQ_MCP_NAME
-const model = await initChatModel(config.llmModel);        // e.g. "google-genai:gemini-2.5-flash"
+const model = await initChatModel(config.llmModel);        // e.g. "google-genai:gemini-3.8-flash"
 const agent = createAgent({ model, tools, systemPrompt: INSTRUCTIONS, checkpointer: new MemorySaver() }); // or createReactAgent
 const armoriq = new ArmorIQLangChain({
   client: new ArmorIQClient({ apiKey: config.armoriqApiKey }),
@@ -208,7 +208,7 @@ Env (`.env.example`):
 ```
 APP_NAME=Orqestra
 ARMORIQ_API_KEY=ak_live_...        # or ak_test_
-LLM_MODEL=google-genai:gemini-2.5-flash   # any initChatModel "provider:model"
+LLM_MODEL=google-genai:gemini-3.8-flash   # any initChatModel "provider:model"
 GOOGLE_API_KEY=...                 # or OPENAI_API_KEY / ANTHROPIC_API_KEY for the provider in LLM_MODEL
 LANGCHAIN_CALLBACKS_BACKGROUND=false
 ARMORIQ_AGENT_NAME=orqestra-agent
