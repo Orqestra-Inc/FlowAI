@@ -42,13 +42,20 @@ function buildServer(): Server {
   return server;
 }
 
-function bearerOk(req: Request): boolean {
+/** Accept the token however the client sends it: "Authorization: Bearer <t>", "Authorization: <t>" or "X-API-Key: <t>". */
+function tokenOk(req: Request): boolean {
   if (!config.mcpBearerToken) return false;
-  const header = req.header('authorization') ?? '';
-  const expected = `Bearer ${config.mcpBearerToken}`;
-  const a = Buffer.from(header);
-  const b = Buffer.from(expected);
-  return a.length === b.length && crypto.timingSafeEqual(a, b);
+  const auth = (req.header('authorization') ?? '').trim();
+  const candidates = [auth.replace(/^bearer\s+/i, ''), (req.header('x-api-key') ?? '').trim()].filter(Boolean);
+  const expected = crypto.createHash('sha256').update(config.mcpBearerToken).digest();
+  return candidates.some((c) => crypto.timingSafeEqual(crypto.createHash('sha256').update(c).digest(), expected));
+}
+
+/** One log line per /mcp request so registration problems are visible in the host logs. Never logs the token. */
+function logRequest(req: Request, status: number, authorized: boolean) {
+  const rpc = req.body && typeof req.body === 'object' ? (Array.isArray(req.body) ? req.body.map((m: any) => m?.method).join(',') : (req.body as any).method) : undefined;
+  const authStyle = req.header('x-api-key') ? 'x-api-key' : /^bearer\s/i.test(req.header('authorization') ?? '') ? 'bearer' : req.header('authorization') ? 'raw-authorization' : 'none';
+  console.log(`[mcp] ${req.method} rpc=${rpc ?? '-'} auth=${authStyle} authorized=${authorized} status=${status} ua=${(req.header('user-agent') ?? '-').slice(0, 60)}`);
 }
 
 export function mcpRouter(): Router {
@@ -56,18 +63,23 @@ export function mcpRouter(): Router {
   router.use(express.json({ limit: '256kb' }));
 
   router.all('/', async (req: Request, res: Response) => {
-    if (!bearerOk(req)) {
+    const authorized = tokenOk(req);
+    if (!authorized) {
+      logRequest(req, 401, false);
       res.status(401).json({ jsonrpc: '2.0', error: { code: -32001, message: 'Unauthorized' }, id: null });
       return;
     }
     if (req.method !== 'POST') {
-      res.status(405).json({ jsonrpc: '2.0', error: { code: -32000, message: 'Method not allowed' }, id: null });
+      // Stateless server: no server-initiated SSE stream (MCP spec: respond 405 to GET).
+      logRequest(req, 405, true);
+      res.status(405).set('Allow', 'POST').json({ jsonrpc: '2.0', error: { code: -32000, message: 'Method not allowed' }, id: null });
       return;
     }
     // Stateless: a fresh server + transport per request.
     const server = buildServer();
     const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true });
     res.on('close', () => {
+      logRequest(req, res.statusCode, true);
       void transport.close();
       void server.close();
     });
