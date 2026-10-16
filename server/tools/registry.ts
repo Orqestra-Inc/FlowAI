@@ -20,7 +20,7 @@ function def<S extends z.ZodType>(d: ToolDef<S>): ToolDef {
 
 const id = (what: string) => z.string().min(1).max(64).describe(what);
 /** Money is whole KES in a field named `amount` — ArmorIQ threshold policies read that field name. */
-const amount = z.number().int().positive().max(100_000_000).describe('Amount in whole Kenyan shillings (KES)');
+const amount = z.number().int().min(1).max(100_000_000).describe('Amount in whole Kenyan shillings (KES)');
 
 export const TOOLS: ToolDef[] = [
   def({
@@ -79,8 +79,8 @@ export const TOOLS: ToolDef[] = [
       'Compare suppliers for restocking an item: totals, cash left after bills due this week, reserve check, ranking and a recommendation. Use this for all reorder arithmetic.',
     schema: z.strictObject({
       item_id: id('Inventory item id, e.g. itm_oil'),
-      quantity: z.number().int().positive().max(10_000).optional().describe('Units to order. Omit to refill to target stock.'),
-      minimum_cash_reserve: z.number().int().nonnegative().optional().describe('Reserve the user asked for, in KES. Cannot go below company policy.'),
+      quantity: z.number().int().min(1).max(10_000).optional().describe('Units to order. Omit to refill to target stock.'),
+      minimum_cash_reserve: z.number().int().min(0).optional().describe('Reserve the user asked for, in KES. Cannot go below company policy.'),
     }),
     run: (db, actor, a) => ops.calculateReorderOptions(db, actor, a),
   }),
@@ -91,7 +91,7 @@ export const TOOLS: ToolDef[] = [
       'Create a DRAFT purchase order. Prices come from the price list. A human must approve it in the app before it can be placed.',
     schema: z.strictObject({
       supplier_id: id('Supplier id'),
-      items: z.array(z.strictObject({ item_id: id('Inventory item id'), quantity: z.number().int().positive().max(10_000) })).min(1).max(20),
+      items: z.array(z.strictObject({ item_id: id('Inventory item id'), quantity: z.number().int().min(1).max(10_000) })).min(1).max(20),
       notes: z.string().max(500).optional(),
       idempotency_key: z.string().min(8).max(64).optional().describe('Optional key; repeating it returns the same draft.'),
     }),
