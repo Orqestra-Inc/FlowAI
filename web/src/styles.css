@@ -46,7 +46,7 @@ button:disabled { cursor: not-allowed; opacity: 0.55; }
 }
 
 /* ── Sign in ─────────────────────────────────────────────── */
-.boot { min-height: 100%; }
+.boot { min-height: 100%; padding: 48px 16px; max-width: 640px; margin: 0 auto; display: grid; gap: 14px; align-content: start; }
 .signin { min-height: 100%; display: grid; place-items: center; padding: 48px 16px; }
 .signin-inner { max-width: 640px; }
 .signin h1 {

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { api, kes, streamChat, type ActivityRow, type AgentEvent, type AppConfig, type PurchaseOrder, type User } from './api';
+import { api, kes, newId, streamChat, type ActivityRow, type AgentEvent, type AppConfig, type PurchaseOrder, type User } from './api';
 import { argSummary, deriveSlips, STAMP_TEXT, TOOL_LABEL, type Slip } from './ledger';
 
 interface Turn {
@@ -34,14 +34,16 @@ const ROLE_NOTE: Record<User['role'], string> = {
 
 export function App() {
   const [config, setConfig] = useState<AppConfig | null>(null);
+  const [bootError, setBootError] = useState('');
   const [user, setUser] = useState<User | null | undefined>(undefined);
 
   useEffect(() => {
-    api.config().then(setConfig).catch(() => setConfig(null));
+    api.config().then(setConfig).catch((e) => setBootError(`Couldn’t reach the server: ${e.message}. Refresh in a minute; a sleeping server takes about a minute to wake.`));
     api.me().then((r) => setUser(r.user)).catch(() => setUser(null));
   }, []);
 
-  if (user === undefined || !config) return <div className="boot" aria-busy="true" />;
+  if (bootError) return <p className="boot error">{bootError}</p>;
+  if (user === undefined || !config) return <p className="boot hint" aria-busy="true">Loading…</p>;
   if (!user) return <SignIn config={config} onSignedIn={setUser} />;
   return <Desk config={config} user={user} onSignOut={() => api.logout().then(() => setUser(null))} onSwitch={setUser} />;
 }
@@ -52,6 +54,16 @@ function SignIn({ config, onSignedIn }: { config: AppConfig; onSignedIn: (u: Use
   const [accounts, setAccounts] = useState<Array<{ email: string; role: User['role']; display_name: string }>>([]);
   const [error, setError] = useState('');
   const [code, setCode] = useState('');
+  const [signingIn, setSigningIn] = useState('');
+  const signIn = (email: string) => {
+    setError('');
+    setSigningIn(email);
+    api
+      .login(email, code)
+      .then((r) => onSignedIn(r.user))
+      .catch((e) => setError(e.message))
+      .finally(() => setSigningIn(''));
+  };
   useEffect(() => {
     api.demoUsers().then(setAccounts).catch(() => setError('Demo accounts are unavailable.'));
   }, []);
@@ -71,10 +83,10 @@ function SignIn({ config, onSignedIn }: { config: AppConfig; onSignedIn: (u: Use
         )}
         <div className="accounts">
           {accounts.map((a) => (
-            <button key={a.email} className="account" onClick={() => api.login(a.email, code).then((r) => onSignedIn(r.user)).catch((e) => setError(e.message))}>
+            <button key={a.email} className="account" disabled={!!signingIn} onClick={() => signIn(a.email)}>
               <span className="account-name">{a.display_name.replace(/ \(.*\)$/, '')}</span>
               <span className="account-role">{a.role}</span>
-              <span className="account-note">{ROLE_NOTE[a.role]}</span>
+              <span className="account-note">{signingIn === a.email ? 'Signing in…' : ROLE_NOTE[a.role]}</span>
             </button>
           ))}
         </div>
@@ -90,7 +102,7 @@ function SignIn({ config, onSignedIn }: { config: AppConfig; onSignedIn: (u: Use
 function Desk({ config, user, onSignOut, onSwitch }: { config: AppConfig; user: User; onSignOut: () => void; onSwitch: (u: User) => void }) {
   const [view, setView] = useState<'chat' | 'activity'>('chat');
   const [turns, setTurns] = useState<Turn[]>([]);
-  const [chatId, setChatId] = useState(() => crypto.randomUUID().slice(0, 12));
+  const [chatId, setChatId] = useState(() => newId().slice(0, 12));
   const [ledgerOpen, setLedgerOpen] = useState(false);
   const [unprotected, setUnprotected] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -98,7 +110,7 @@ function Desk({ config, user, onSignOut, onSwitch }: { config: AppConfig; user: 
   // A new person gets a new conversation.
   useEffect(() => {
     setTurns([]);
-    setChatId(crypto.randomUUID().slice(0, 12));
+    setChatId(newId().slice(0, 12));
     setUnprotected(false);
   }, [user.userId]);
 
@@ -107,7 +119,7 @@ function Desk({ config, user, onSignOut, onSwitch }: { config: AppConfig; user: 
 
   const send = useCallback(
     async (message: string) => {
-      const id = crypto.randomUUID();
+      const id = newId();
       const turn: Turn = { id, message, protected: !unprotected, events: [], running: true };
       setTurns((ts) => [...ts, turn]);
       const update = (fn: (t: Turn) => Turn) => setTurns((ts) => ts.map((t) => (t.id === id ? fn(t) : t)));
