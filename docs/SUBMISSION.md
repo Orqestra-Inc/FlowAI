@@ -5,7 +5,7 @@ Deadline: **17 Oct 2026, 11:59 PM IST** (9:29 PM Nairobi). Live demo must work *
 ## Checklist
 
 - [ ] Every team member has **ArmorTools Pro** active (tools.armoriq.ai → Pro → code `FLOWSTATEPRO`). Unjudged without it.
-- [ ] Policies live in **Policy Studio**; `npm run boundary` passes; `docs/boundary-evidence.md` committed.
+- [x] Policies live in **Policy Studio**. Verify with **Activity → Policy check** as Grace (optionally also `npm run boundary` locally and commit `docs/boundary-evidence.md`).
 - [ ] Live demo up at https://orqestra.onrender.com, with an uptime monitor on `/api/health` every 10 min **through 21 Oct**.
 - [ ] `ELEVENLABS_API_KEY` set in Render (enables Speak / Listen).
 - [ ] Keys valid through 21 Oct (Gemini free tier, ArmorIQ, ElevenLabs). Chat limits set (40/hour, 400/day).
@@ -18,7 +18,7 @@ Deadline: **17 Oct 2026, 11:59 PM IST** (9:29 PM Nairobi). Live demo must work *
 
 **Project:** Orqestra
 **Repo:** https://github.com/Orqestra-Inc/FlowAI
-**Live demo:** https://orqestra.onrender.com (access code: `<YOUR CODE>`; pick any demo person on the sign-in screen)
+**Live demo:** https://orqestra.onrender.com (access code `flow-2026`, also shown as a hint on the sign-in screen; pick any person)
 
 **What it is (simple words)**
 Orqestra lets a small business run its daily operations by asking. Owners and staff chat with Flow, an AI agent that checks stock, compares suppliers, drafts purchase orders and pays bills, with no ERP to learn. Because an AI that moves money can be tricked, every action Flow tries is checked by ArmorIQ before it runs: each person has their own limits, large payments wait for a human, and dangerous actions are blocked. In the demo, a fake supplier invoice tells the AI to change the supplier's bank details, pay KSh 480,000 and export the supplier list. Flow is fooled; ArmorIQ stops every one of those actions while normal work goes through.
