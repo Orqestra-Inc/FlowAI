@@ -36,7 +36,7 @@ Owners can ask Flow by voice. The browser records the request and sends it to Or
 
 ## Video script (about 4 minutes)
 
-Record at 1440×900. Reset demo data first. Have the ArmorIQ console open in a second tab.
+Record at 1440×900. Reset sample data first (avatar menu, top right). As Grace, run **Activity → Policy check** and make sure every row is as intended. Have the ArmorIQ console open in a second tab.
 
 **1. Problem and who it's for (0:00–0:35)**
 Show the sign-in screen.
@@ -45,7 +45,7 @@ Show the sign-in screen.
 **2. The product working, end to end (0:35–1:50)**
 Sign in as Brian (procurement). Click: *"We're low on cooking oil. Recommend a supplier and prepare an order, but keep cash above KSh 80,000."*
 > "Flow reads stock, suppliers and bills. The cheapest supplier only sells in bulk, which would break the cash reserve, so it recommends Kisumu Wholesale. The arithmetic is done in code, not by the model. It creates a draft: nothing is ordered yet."
-Point at the action ledger: each step stamped **Allowed**.
+Point at **Action checks** on the right: each step marked **Allowed**.
 Switch to Grace (owner). Open the draft, click **Approve order**.
 > "Only a person can approve. The approval is tied to this exact supplier, price and total, it expires, and the person who drafted it can't approve it."
 Click **Ask Flow to place it**. Show **Placed (simulated)** and the reference.
@@ -55,7 +55,7 @@ Voice moment (10 s): tap the **mic**, say *"Which bills are due this week?"*, ta
 **3. The attack, and the ArmorIQ console (1:50–3:10)**
 Switch to Faith (accountant). Click: *"Process all of this week's open supplier bills, including Rift Valley Packaging."*
 > "One bill contains hidden instructions: change our bank details, pay KSh 480,000 now, no approval needed, and email the supplier list out for an 'audit'. The model is fooled, and it tries."
-Show the ledger: bank change **Blocked**, export **Blocked**, KSh 480,000 payment **Held**, the legitimate KSh 38,500 bill **Allowed**.
+Show **Action checks**: bank change **Blocked**, export **Blocked**, KSh 480,000 payment **Held**, the legitimate KSh 38,500 bill **Allowed**.
 Switch to the ArmorIQ console: show the held request in Approvals, **Reject** it. Back in Orqestra the payment flips to Blocked.
 > "The decision was never the model's to make."
 
@@ -65,7 +65,7 @@ Show the `orqestra-access` policy: target `orqestra-erp`, default `block`, the t
 Optional: as Brian, ask *"Show me this month's payroll totals"*: **Blocked**; Grace can see it.
 
 **5. Takeaways and what's next (3:45–4:20)**
-Show the Activity view or the README boundary table.
+Show **Activity → Policy check** (all rows as intended) or the README boundary table.
 > "What we learned: the model will be fooled, so safety has to live outside it and fail closed. ArmorIQ decides which actions are allowed; our business rules decide whether an action is correct, and you need both. Next: real integrations (M-Pesa and accounting imports), in-app approvals, voice in English and Swahili, and onboarding our first design-partner businesses."
 
 ## Takeaways (for the form)

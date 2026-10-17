@@ -22,7 +22,7 @@ The demo business is *Baraka Fresh Distributors*, a Nairobi wholesaler. All data
 | 5. Per-user policy | Brian vs Grace | “Show me payroll totals.” **Blocked** for procurement, allowed for the owner. |
 | 6. Without the guard | Grace (demo toggle) | Same attack with ArmorIQ off: bank details change and data is exported. (The payment is still refused by a business rule: defense in depth.) |
 
-Every decision appears live in the **action ledger** (each tool call is a slip stamped *Allowed*, *Held* or *Blocked*) and in the **Activity** log.
+Every decision appears live under **Action checks** (each tool call marked *Allowed*, *Held* or *Blocked*) and in the **Activity** log. The owner can also run a **Policy check** from Activity to test the live ArmorIQ policy in seconds.
 
 ## Voice (ElevenLabs)
 
@@ -68,22 +68,33 @@ ArmorIQ governs *which actions the agent may take*. It does not make a bad decis
 
 ## ArmorIQ console setup
 
-1. Create an API key (**Settings → API Keys**).
-2. Deploy Orqestra (below) and register the MCP server: name **`orqestra-erp`**, URL `https://<your-host>/mcp`, credential = `MCP_BEARER_TOKEN`.
+ArmorIQ blocks every tool call that no active policy covers (`no_matching_policy`), so nothing works until step 4 is done.
+
+1. Create an API key (**Settings → API Keys**) and set it as `ARMORIQ_API_KEY`.
+2. Register the MCP server: name **`orqestra-erp`**, URL `https://<your-host>/mcp`, credential = `MCP_BEARER_TOKEN`. (If the Quick Scan view crashes, ignore it; registration still works.)
 3. Register the agent: name **`orqestra-agent`**.
-4. Add the users and their money limits: `owner@baraka.demo` (KSh 500,000), `procurement@baraka.demo` (KSh 50,000), `accountant@baraka.demo` (KSh 100,000).
-5. Create policies on `orqestra-erp`. ArmorIQ fails closed (`no_matching_policy`) until a policy matches, so start with `reads-allowed`, run `npm run check` and one read, then add the rest:
+4. **Policies → Policy Studio → Single Policy**, then **Save Policy**:
 
-| Policy | Action | Tools |
-|---|---|---|
-| `reads-allowed` | allow | `get_business_overview`, `get_inventory`, `list_low_stock`, `list_suppliers`, `get_open_bills`, `get_bill`, `get_cash_position`, `calculate_reorder_options`, `get_purchase_order`, `list_purchase_orders` |
-| `drafts-allowed` | allow | `create_purchase_order_draft` |
-| `money-over-limit-held` | hold above the user’s limit (reads the `amount` argument) | `commit_purchase_order`, `pay_bill` |
-| `bank-changes-held` | hold, always | `update_supplier_payout_details` |
-| `payroll-owner-only` | allow for the owner, block for others | `get_payroll_summary` |
-| `exfiltration-denied` | block | `export_supplier_list` |
+| Field | Value |
+|---|---|
+| Policy Name | `orqestra-access` |
+| Target Type / Target ID | `mcp_server` / `orqestra-erp` |
+| Status / Priority | `active` / `100` |
+| Default Enforcement | `block` (anything not listed below is refused) |
 
-Money arguments are always named `amount`, in whole shillings, so threshold policies can read them. Cover **both** money tools: a model blocked on one will reach for its sibling.
+Member rules (one per person; "reads" = `get_business_overview`, `get_inventory`, `list_low_stock`, `list_suppliers`, `get_open_bills`, `get_bill`, `get_cash_position`, `calculate_reorder_options`, `get_purchase_order`, `list_purchase_orders`):
+
+| Member | Allowed tools | Enforcement | Amount threshold |
+|---|---|---|---|
+| `owner@baraka.demo` | reads, `create_purchase_order_draft`, `commit_purchase_order`, `pay_bill`, `get_payroll_summary` | allow | 500000 |
+| `procurement@baraka.demo` | reads, `create_purchase_order_draft`, `commit_purchase_order` | allow | 50000 |
+| `accountant@baraka.demo` | reads, `pay_bill` | allow | 100000 |
+
+`export_supplier_list` and `update_supplier_payout_details` are in nobody's list, so they are always blocked. Money arguments are always named `amount`, in whole shillings, so thresholds can read them.
+
+5. **Verify in the app:** sign in as Grace (owner) → **Activity** → **Run check**. It asks the live ArmorIQ account how it decides 12 sample actions (stock checks, a report, drafts, payments, payroll, exports, bank changes) on a throwaway copy of the data and shows which ones don't behave as intended, with ArmorIQ's reason.
+
+**If the check still shows `no_matching_policy` for stock checks**, your ArmorIQ organization only matches member rules to its own members, and the demo emails aren't members. Map the demo people to a real member with `ARMORIQ_IDENTITY_MAP` (in Render → Environment), e.g. `owner@baraka.demo=you@example.com,procurement@baraka.demo=you@example.com,accountant@baraka.demo=you@example.com`, and replace the three member rules with one for `you@example.com`: reads, draft, commit, `pay_bill`, `get_payroll_summary`, threshold `200000`. Exports and bank changes stay blocked and the KSh 480,000 payment is still held; payroll for procurement is then refused by Orqestra's own role rule instead of ArmorIQ.
 
 ## Run it
 
@@ -108,7 +119,7 @@ During development: `npm run dev` (API on :8787, Vite on :5173).
 
 | Command | What it proves | Needs keys |
 |---|---|---|
-| `npm test` | 29 tests. Business rules (reserve, max amount, approval binding, tampering, expiry, reuse, idempotency, roles, tenant isolation; denied actions leave the database unchanged) **and** enforcement through the real `ArmorIQLangChain` adapter inside a real LangGraph agent: blocked and held tools never execute, fail-closed on errors, unguarded control run shows the damage. | No |
+| `npm test` | 55 tests. Business rules (reserve, max amount, approval binding, tampering, expiry, reuse, idempotency, roles, tenant isolation; denied actions leave the database unchanged) **and** enforcement through the real `ArmorIQLangChain` adapter inside a real LangGraph agent: blocked and held tools never execute, fail-closed on errors, unguarded control run shows the damage. | No |
 | `npm run boundary` | The boundary matrix against your **live** ArmorIQ policies, with a scripted model so results depend only on policy. Writes `docs/boundary-evidence.md`. | ArmorIQ |
 | `npm run eval` | The demo prompts with the real model and live ArmorIQ. | ArmorIQ + model |
 
@@ -150,7 +161,7 @@ server/
   tools/registry.ts     typed tool definitions (one list for the agent and /mcp)
   mcp.ts                discovery-only MCP endpoint
   app.ts, index.ts      HTTP API, demo auth, approvals, activity
-web/src/                React UI (chat, action ledger, activity)
+web/src/                React UI (chat, action checks, activity, policy check)
 scripts/                check-setup, boundary, eval, preview
 tests/                  domain + enforcement tests
 docs/SPEC.md            build spec

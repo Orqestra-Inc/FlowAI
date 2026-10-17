@@ -19,6 +19,12 @@ export interface ActivityRow {
   decision: 'allowed' | 'held' | 'approved' | 'blocked' | 'failed' | 'completed' | 'info'; reason: string; payload_summary: string; created_at: string;
 }
 
+export interface PolicyCheckRow {
+  label: string; email: string; identity: string; tool: string;
+  expect: 'allowed' | 'held' | 'blocked' | 'error'; decision: 'allowed' | 'held' | 'blocked' | 'error'; reason: string; pass: boolean;
+}
+export interface PolicyCheck { ok: boolean; error?: string; results: PolicyCheckRow[] }
+
 export interface ChatSummary { chatId: string; title: string; turns: number; startedAt: string; updatedAt: string }
 export interface StoredTurn { id: string; message: string; protected: boolean; events: AgentEvent[]; error: string | null; created_at: string }
 
@@ -59,6 +65,7 @@ export const api = {
   chats: () => request<ChatSummary[]>('/api/chats'),
   chat: (chatId: string) => request<{ chatId: string; turns: StoredTurn[] }>(`/api/chats/${encodeURIComponent(chatId)}`),
   reset: () => request('/api/demo/reset', { method: 'POST' }),
+  policyCheck: () => request<PolicyCheck>('/api/armoriq/policy-check', { method: 'POST' }),
 };
 
 /** POST a chat message and stream AgentEvents (server-sent events over fetch). */

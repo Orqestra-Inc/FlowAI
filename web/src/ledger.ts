@@ -120,3 +120,12 @@ export function argSummary(args: unknown): string {
   }
   return parts.join(', ');
 }
+
+/** ArmorIQ's raw reasons, in words a business user understands. The raw code stays visible in parentheses. */
+export function friendlyReason(reason?: string | null): string {
+  if (!reason) return '';
+  if (/no_matching_policy/i.test(reason)) return 'No ArmorIQ policy covers this action for this person yet (no_matching_policy).';
+  if (/tool-not-in-plan/i.test(reason)) return 'Not part of the plan the agent declared, so it was refused.';
+  if (/enforce-unavailable/i.test(reason)) return 'ArmorIQ could not be reached, so the action was refused (fail-closed).';
+  return reason;
+}
