@@ -74,6 +74,7 @@ export function createApp(db: DB, overrides: AppOverrides = {}) {
       armoriqConsoleUrl: config.armoriqConsoleUrl,
       approvalWaitSeconds: config.approvalWaitSeconds,
       requireAccessCode: config.demoAccessCode.length > 0,
+      accessCodeHint: config.demoAccessCode.length > 0 ? config.demoAccessCodeHint : '',
       voiceEnabled: voice !== null,
     });
   });

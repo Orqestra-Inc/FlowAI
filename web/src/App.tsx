@@ -117,7 +117,12 @@ function SignIn({ config, onSignedIn }: { config: AppConfig; onSignedIn: (u: Use
         {config.requireAccessCode && (
           <label className="field">
             <span>Access code</span>
-            <input value={code} onChange={(e) => setCode(e.target.value)} autoComplete="off" inputMode="text" placeholder="Enter your access code" />
+            <input value={code} onChange={(e) => setCode(e.target.value)} autoComplete="off" autoCapitalize="none" spellCheck={false} placeholder="Enter your access code" aria-describedby={config.accessCodeHint ? 'code-hint' : undefined} />
+            {config.accessCodeHint && (
+              <span id="code-hint" className="field-hint">
+                Hint: <button type="button" className="hint-code" onClick={() => setCode(config.accessCodeHint)} title="Use this code">{config.accessCodeHint}</button>
+              </span>
+            )}
           </label>
         )}
 

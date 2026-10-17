@@ -62,6 +62,8 @@ export const config = {
 
   /** If set, the demo sign-in screen asks for this code. Share it only with judges and testers. */
   demoAccessCode: process.env.DEMO_ACCESS_CODE ?? '',
+  /** Shown under the access-code field so testers aren't stuck. Set DEMO_ACCESS_CODE_HINT="" to hide it. */
+  demoAccessCodeHint: process.env.DEMO_ACCESS_CODE_HINT ?? 'flow-2026',
   /** Protects the model quota on a public demo: chat requests per signed-in browser per hour, and per day overall. */
   chatLimitPerHour: num('CHAT_LIMIT_PER_HOUR', 40),
   chatLimitPerDay: num('CHAT_LIMIT_PER_DAY', 400),

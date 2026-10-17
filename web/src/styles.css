@@ -135,6 +135,12 @@ h1, h2, h3, p { margin: 0; }
   background: var(--surface); font-size: 1rem; font-weight: 400;
 }
 .field input:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
+.field-hint { font-weight: 400; font-size: 0.82rem; color: var(--muted); }
+.hint-code {
+  border: none; background: var(--surface-2); border-radius: 6px; padding: 1px 7px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.82rem; color: var(--ink);
+}
+.hint-code:hover { background: var(--accent-soft); color: var(--accent); }
 .signin .section-label { margin: 4px 0 -8px; }
 .accounts { display: grid; gap: 8px; }
 .account {
