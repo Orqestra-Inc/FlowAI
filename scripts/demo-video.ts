@@ -1,26 +1,26 @@
 /**
- *   npm run demo:video -- --login        # once: log in to the ArmorIQ console in the window that opens
- *   npm run demo:video                   # record the narrated demo video
+ *   npm run demo:video                 # 1. record the app scenes with ElevenLabs narration
+ *   npm run demo:video -- --compose    # 2. after adding your console recordings, build the final video
  *
- * Records the hackathon demo end to end against the LIVE app and your real ArmorIQ console:
- *   1. Writes the narration with ElevenLabs (your ELEVENLABS_API_KEY), cached in out/demo-video/audio.
- *   2. Resets the sample data, then drives the app in a real (visible) Chromium window and records it.
- *      The model's thinking time is cut out afterwards, so the video stays tight.
- *   3. You click "Reject" in the ArmorIQ console when the terminal tells you to.
- *   4. ffmpeg stitches the clips and lays the narration (and the spoken voice request) on top.
+ * Records the hackathon demo against the LIVE app:
+ *   - ElevenLabs writes the narration (your ELEVENLABS_API_KEY), cached in out/demo-video/audio.
+ *   - The sample data is reset, then a recorder browser drives the app (real model, real ArmorIQ checks).
+ *     The model's thinking time is cut out afterwards.
+ *   - When the KSh 480,000 payment is held, the terminal beeps: reject it in YOUR OWN browser on the
+ *     ArmorIQ platform console (where your passkey / Google login works).
+ *   - The ArmorIQ console scenes are your own screen recordings, dropped into out/demo-video/console/ as
+ *     approvals.mp4, audit.mp4 and policy.mp4. The recorder leaves a slot of the right length for each and
+ *     prints those lengths; `--compose` fits each recording into its slot and mixes in the narration.
  *
  * Output: out/demo-video/orqestra-demo.mp4
  *
- * Needs: Node 20+, `npx playwright install chromium`, ffmpeg + ffprobe on PATH, and in .env (or the shell):
- *   DEMO_URL                 https://orqestra.onrender.com (default)
- *   DEMO_CODE                the judge access code (DEMO_ACCESS_CODE in Render)
- *   ELEVENLABS_API_KEY       for narration
- *   ARMORIQ_APPROVALS_URL    the ArmorIQ console page where held requests are approved/rejected
- *   ARMORIQ_POLICY_URL       your orqestra-access policy in Policy Studio
- *   ARMORIQ_AUDIT_URL        ArmorIQ's audit / logs page
- *   NARRATOR_VOICE_ID        optional ElevenLabs voice for the narrator
- * Flags: --login, --with-unprotected (adds the "ArmorIQ off" comparison; needs DEMO_ALLOW_UNPROTECTED=1 in Render),
- *        --fake-tts (silent placeholder narration, for testing the pipeline), --keep-raw.
+ * Needs: Node 20+, `npx playwright install chromium ffmpeg`, ffmpeg + ffprobe on PATH, and in .env (or the shell):
+ *   DEMO_URL            https://orqestra.onrender.com (default)
+ *   DEMO_CODE           the judge access code (DEMO_ACCESS_CODE in Render)
+ *   ELEVENLABS_API_KEY  for narration
+ *   NARRATOR_VOICE_ID   optional ElevenLabs voice for the narrator
+ * Flags: --compose, --with-unprotected (adds the "ArmorIQ off" comparison; needs DEMO_ALLOW_UNPROTECTED=1 in Render),
+ *        --fake-tts (silent placeholder narration, for testing), --keep-raw.
  */
 import 'dotenv/config';
 import fs from 'node:fs';
@@ -37,12 +37,6 @@ const PROFILE = path.join(OUT, 'browser-profile');
 const APP = (process.env.DEMO_URL ?? 'https://orqestra.onrender.com').replace(/\/$/, '');
 const CODE = process.env.DEMO_CODE ?? process.env.DEMO_ACCESS_CODE ?? '';
 const KEY = process.env.ELEVENLABS_API_KEY ?? '';
-const CONSOLE_HOME = process.env.ARMORIQ_CONSOLE_URL ?? 'https://platform.armoriq.ai';
-const CONSOLE = {
-  approvals: process.env.ARMORIQ_APPROVALS_URL ?? CONSOLE_HOME,
-  policy: process.env.ARMORIQ_POLICY_URL ?? CONSOLE_HOME,
-  audit: process.env.ARMORIQ_AUDIT_URL ?? CONSOLE_HOME,
-};
 // Narrator, the person asking by voice, and Flow's spoken reply use different voices so they're easy to tell apart.
 // Any ID that isn't available on your account falls back to the narrator voice.
 const VOICES = {
@@ -133,27 +127,26 @@ async function tts(text: string, voice: string): Promise<Clip> {
 
 // ── Timeline: what to keep from each recorded page, and where audio goes ──
 
-type PageName = 'app' | 'console';
-interface Seg { page: PageName; from: number; to: number }
+/** 'app' = a stretch of the recorded browser; 'clip' = a slot filled later with your own console recording. */
+type ConsoleClip = 'approvals' | 'audit' | 'policy';
+interface Seg { page: 'app' | 'clip'; clip?: ConsoleClip; from: number; to: number }
 const segs: Seg[] = [];
 const sounds: Array<{ file: string; at: number; volume: number }> = [];
-const keep = (page: PageName, from: number, to: number) => {
+const keep = (page: 'app', from: number, to: number) => {
   if (to - from > 200) segs.push({ page, from, to });
 };
 
-let pages: Record<PageName, Page>;
-let current: PageName = 'app';
-async function show(name: PageName) {
-  if (current !== name) {
-    await pages[name].bringToFront();
-    current = name;
-    await sleep(300);
-  }
+/** A narrated slot for one of your console recordings. `act` still runs (e.g. waiting while you reject the hold). */
+async function clipBeat(clip: ConsoleClip, line: Clip, act: () => Promise<void> = async () => {}) {
+  const start = Date.now();
+  sounds.push({ file: line.file, at: start, volume: 1 });
+  const dur = line.seconds * 1000 + 450;
+  await Promise.all([sleep(dur), act()]);
+  segs.push({ page: 'clip', clip, from: start, to: start + dur });
 }
 
 /** One narrated beat: the narration plays while `act` runs. Any waiting beyond the narration is cut, except the moment the result appears. */
-async function beat(on: PageName, line: Clip | null, act: () => Promise<void> = async () => {}) {
-  await show(on);
+async function beat(on: 'app', line: Clip | null, act: () => Promise<void> = async () => {}) {
   const start = Date.now();
   if (line) sounds.push({ file: line.file, at: start, volume: 1 });
   let actEnd = 0;
@@ -273,36 +266,9 @@ async function resetData() {
   return cfg as { voiceEnabled: boolean; allowUnprotected: boolean; armoriqConfigured: boolean };
 }
 
-/** Your installed Google Chrome (CHROME_PATH overrides). Google sign-in refuses automation-controlled browsers,
- *  so the login happens in plain Chrome, and recording reuses that same Chrome and profile. */
-function findChrome(): string | null {
-  const candidates = [
-    process.env.CHROME_PATH,
-    ...(process.platform === 'win32'
-      ? [
-          `${process.env['PROGRAMFILES'] ?? 'C:\\Program Files'}\\Google\\Chrome\\Application\\chrome.exe`,
-          `${process.env['PROGRAMFILES(X86)'] ?? 'C:\\Program Files (x86)'}\\Google\\Chrome\\Application\\chrome.exe`,
-          `${process.env.LOCALAPPDATA ?? ''}\\Google\\Chrome\\Application\\chrome.exe`,
-        ]
-      : process.platform === 'darwin'
-        ? ['/Applications/Google Chrome.app/Contents/MacOS/Google Chrome']
-        : ['/usr/bin/google-chrome', '/usr/bin/google-chrome-stable', '/opt/google/chrome/chrome', '/usr/bin/chromium', '/usr/bin/chromium-browser', '/snap/bin/chromium']),
-  ].filter(Boolean) as string[];
-  return candidates.find((c) => fs.existsSync(c)) ?? null;
-}
-
 async function loginMode() {
-  const chrome = findChrome();
-  if (!chrome) throw new Error('Google Chrome was not found. Install it, or set CHROME_PATH to its executable.');
-  fs.mkdirSync(PROFILE, { recursive: true });
-  log(`Opening ${chrome} (a normal Chrome window, no automation, so Google sign-in works).`);
-  log('1. Log in to the ArmorIQ platform console.');
-  log('2. Copy into .env: ARMORIQ_APPROVALS_URL (approvals page), ARMORIQ_POLICY_URL (your orqestra-access policy), ARMORIQ_AUDIT_URL (audit/logs).');
-  log('3. Close the Chrome window. The login is kept in out/demo-video/browser-profile for recording.');
-  // --password-store=basic matches what the recorder uses, so the saved login can be read back.
-  const r = spawnSync(chrome, [`--user-data-dir=${PROFILE}`, '--password-store=basic', '--no-first-run', '--no-default-browser-check', '--new-window', CONSOLE_HOME], { stdio: 'inherit' });
-  if (r.error) throw r.error;
-  log('Chrome closed. Run `npm run demo:video` to record.');
+  log('No browser login is needed any more: the ArmorIQ console scenes are your own screen recordings.');
+  log('Record them in your normal browser and save them as out/demo-video/console/{approvals,audit,policy}.mp4, then run `npm run demo:video -- --compose`.');
 }
 
 // ── Recording ────────────────────────────────────────────────────────
@@ -312,7 +278,6 @@ async function record() {
   if (!KEY && !FAKE_TTS) throw new Error('Set ELEVENLABS_API_KEY for the narration (or use --fake-tts to test).');
   run('ffmpeg', ['-version']);
   run('ffprobe', ['-version']);
-  for (const [k, v] of Object.entries(CONSOLE)) if (v === CONSOLE_HOME) log(`ARMORIQ_${k.toUpperCase()}_URL not set; that scene will show the console home page.`);
   fs.mkdirSync(AUDIO, { recursive: true });
   fs.rmSync(RAW, { recursive: true, force: true });
   fs.mkdirSync(RAW, { recursive: true });
@@ -339,8 +304,8 @@ async function record() {
   fs.mkdirSync(PROFILE, { recursive: true });
   const ctx: BrowserContext = await chromium.launchPersistentContext(PROFILE, {
     headless: process.env.DEMO_HEADLESS === '1',
-    // Same Chrome as the login so the saved ArmorIQ session is readable (DEMO_CHROMIUM is only for testing).
-    executablePath: process.env.DEMO_CHROMIUM || findChrome() || undefined,
+    // Playwright's own Chromium; it only needs the Orqestra app, no logins (DEMO_CHROMIUM is only for testing).
+    executablePath: process.env.DEMO_CHROMIUM || undefined,
     ignoreDefaultArgs: ['--enable-automation'],
     viewport: { width: W, height: H },
     recordVideo: { dir: RAW, size: { width: W, height: H } },
@@ -355,13 +320,6 @@ async function record() {
 
   const app = ctx.pages()[0] ?? (await ctx.newPage());
   const appT0 = Date.now();
-  const consolePage = await ctx.newPage();
-  const consoleT0 = Date.now();
-  pages = { app, console: consolePage };
-  await consolePage.goto(CONSOLE.approvals).catch(() => {});
-  if (/login|sign-?in|auth/i.test(consolePage.url())) throw new Error('The ArmorIQ console asks you to log in. Close all Chrome windows using this profile, then run `npm run demo:video -- --login` again.');
-  await app.bringToFront();
-  current = 'app';
   await app.goto(`${APP}/?code=${encodeURIComponent(CODE)}`);
   await app.locator('.account').first().waitFor({ timeout: 120_000 });
   await app.evaluate(() => localStorage.clear()).catch(() => {});
@@ -412,7 +370,6 @@ async function record() {
     // 4. Voice
     if (cfg.voiceEnabled) {
       await beat('app', L.voiceIntro);
-      await show('app');
       {
         const n = await turns(app);
         const mic = app.locator('.speak');
@@ -459,9 +416,8 @@ async function record() {
     });
     if (held) {
       process.stdout.write('\x07');
-      log('>>> NOW: in the browser, REJECT the held KSh 480,000 payment in the ArmorIQ console. <<<');
-      await beat('console', L.console, async () => {
-        await consolePage.goto(CONSOLE.approvals).catch(() => {});
+      log('>>> NOW: in YOUR OWN browser, open the ArmorIQ approvals page and REJECT the held KSh 480,000 payment. <<<');
+      await clipBeat('approvals', L.console, async () => {
         await waitForReply(app, (await turns(app)) - 1, 240_000).catch((e) => {
           if (!/error/i.test(String(e))) throw e;
         });
@@ -472,18 +428,10 @@ async function record() {
     } else {
       log('No hold appeared (check the policy threshold); skipping the console approval scene.');
     }
-    await beat('console', L.audit, async () => {
-      await consolePage.goto(CONSOLE.audit).catch(() => {});
-      await sleep(1500);
-      await slowScroll(consolePage, 500, 2500);
-    });
+    await clipBeat('audit', L.audit);
 
     // 6. Policy Studio + policy check
-    await beat('console', L.policy, async () => {
-      await consolePage.goto(CONSOLE.policy).catch(() => {});
-      await sleep(2500);
-      await slowScroll(consolePage, 900, 9000);
-    });
+    await clipBeat('policy', L.policy);
     await beat('app', L.policyCheck, async () => {
       await switchTo(app, 'Grace');
       await goView(app, 'Activity');
@@ -521,16 +469,38 @@ async function record() {
   }
 
   const appVideo = app.video();
-  const consoleVideo = consolePage.video();
   await ctx.close();
   if (failure) throw failure;
-  const files = { app: await appVideo!.path(), console: await consoleVideo!.path() };
-  compose(files, { app: appT0, console: consoleT0 });
+  fs.copyFileSync(await appVideo!.path(), APP_VIDEO);
+  fs.writeFileSync(TIMELINE, JSON.stringify({ appT0, segs, sounds }, null, 2));
+  const slots = segs.filter((s) => s.page === 'clip').map((s) => `${s.clip} (${((s.to - s.from) / 1000).toFixed(0)} s)`);
+  log(`App recording saved. Console slots to fill: ${slots.join(', ')}.`);
+  compose();
 }
 
 // ── Editing ──────────────────────────────────────────────────────────
 
-function compose(files: Record<PageName, string>, t0: Record<PageName, number>) {
+const APP_VIDEO = path.join(OUT, 'app.webm');
+const TIMELINE = path.join(OUT, 'timeline.json');
+const CLIPS_DIR = path.join(OUT, 'console');
+
+/** Your console recording for a slot: out/demo-video/console/<name>.(mp4|webm|mov|mkv). */
+function clipFile(name: ConsoleClip): string | null {
+  for (const ext of ['mp4', 'webm', 'mov', 'mkv']) {
+    const f = path.join(CLIPS_DIR, `${name}.${ext}`);
+    if (fs.existsSync(f)) return f;
+  }
+  return null;
+}
+
+function compose() {
+  if (!fs.existsSync(TIMELINE) || !fs.existsSync(APP_VIDEO)) throw new Error('No recording yet. Run `npm run demo:video` first.');
+  const saved = JSON.parse(fs.readFileSync(TIMELINE, 'utf8')) as { appT0: number; segs: Seg[]; sounds: typeof sounds };
+  segs.splice(0, segs.length, ...saved.segs);
+  sounds.splice(0, sounds.length, ...saved.sounds);
+  fs.mkdirSync(CLIPS_DIR, { recursive: true });
+  const missing = [...new Set(segs.filter((s) => s.page === 'clip' && !clipFile(s.clip!)).map((s) => s.clip))];
+  if (missing.length) log(`No console recording yet for: ${missing.join(', ')}. Using a blank slate there. Add ${missing.map((m) => `${m}.mp4`).join(', ')} to ${CLIPS_DIR} and run \`npm run demo:video -- --compose\`.`);
   log(`Editing ${segs.length} clips…`);
   const parts = path.join(OUT, 'parts');
   fs.rmSync(parts, { recursive: true, force: true });
@@ -538,9 +508,18 @@ function compose(files: Record<PageName, string>, t0: Record<PageName, number>) 
   const list: string[] = [];
   segs.forEach((s, i) => {
     const out = path.join(parts, `${String(i).padStart(3, '0')}.mp4`);
-    const from = Math.max(0, (s.from - t0[s.page]) / 1000);
     const dur = (s.to - s.from) / 1000;
-    run('ffmpeg', ['-y', '-v', 'error', '-ss', from.toFixed(3), '-i', files[s.page], '-t', dur.toFixed(3), '-an', '-vf', `fps=30,scale=${W}:${H},setsar=1`, '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '20', '-pix_fmt', 'yuv420p', out]);
+    const enc = ['-an', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '20', '-pix_fmt', 'yuv420p', '-t', dur.toFixed(3), out];
+    if (s.page === 'app') {
+      const from = Math.max(0, (s.from - saved.appT0) / 1000);
+      run('ffmpeg', ['-y', '-v', 'error', '-ss', from.toFixed(3), '-i', APP_VIDEO, '-vf', `fps=30,scale=${W}:${H},setsar=1`, ...enc]);
+    } else {
+      const file = clipFile(s.clip!);
+      // Fit your recording into the slot: scale to fit, pad, and hold the last frame if it is shorter than the narration.
+      const fit = `fps=30,scale=${W}:${H}:force_original_aspect_ratio=decrease,pad=${W}:${H}:(ow-iw)/2:(oh-ih)/2:color=white,setsar=1,tpad=stop_mode=clone:stop_duration=600`;
+      if (file) run('ffmpeg', ['-y', '-v', 'error', '-i', file, '-vf', fit, ...enc]);
+      else run('ffmpeg', ['-y', '-v', 'error', '-f', 'lavfi', '-i', `color=c=white:s=${W}x${H}:r=30`, ...enc]);
+    }
     list.push(`file '${out.replace(/\\/g, '/').replace(/'/g, "'\\''")}'`);
   });
   const listFile = path.join(parts, 'list.txt');
@@ -571,7 +550,8 @@ function compose(files: Record<PageName, string>, t0: Record<PageName, number>) 
   if (total > 300) log('Warning: the video is longer than 5:00. Shorten some narration lines in scripts/demo-video.ts and run again (narration is cached, only changed lines are regenerated).');
 }
 
-(args.has('--login') ? loginMode() : record()).catch((err) => {
+const main = args.has('--login') ? loginMode : args.has('--compose') ? async () => compose() : record;
+main().catch((err) => {
   console.error(`\n[demo] Stopped: ${err instanceof Error ? err.message : err}`);
   process.exit(1);
 });

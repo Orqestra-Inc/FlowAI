@@ -141,15 +141,16 @@ During development: `npm run dev` (API on :8787, Vite on :5173).
 
 ## Recording the demo video
 
-`npm run demo:video` records the narrated demo end to end against the live app and your real ArmorIQ console: ElevenLabs writes the narration, Playwright drives the app in a visible browser, the model's thinking time is cut, and ffmpeg mixes the result into `out/demo-video/orqestra-demo.mp4`.
+`npm run demo:video` records the narrated demo against the live app: ElevenLabs writes the narration, Playwright drives the app, the model's thinking time is cut, and ffmpeg mixes the result into `out/demo-video/orqestra-demo.mp4`. The ArmorIQ console scenes are your own screen recordings (your normal browser, so passkey or Google sign-in works).
 
 ```bash
-npx playwright install chromium ffmpeg   # once; also install ffmpeg itself (sudo apt install ffmpeg)
-npm run demo:video -- --login            # once: opens your normal Google Chrome; log in to platform.armoriq.ai, then close it
-npm run demo:video                       # record (add --with-unprotected for the "ArmorIQ off" comparison)
+sudo apt install ffmpeg && npx playwright install chromium ffmpeg   # once
+npm run demo:video              # records the app; beeps when you should reject the held payment in your own browser
+# record approvals.mp4, audit.mp4, policy.mp4 of the ArmorIQ console into out/demo-video/console/
+npm run demo:video -- --compose # fits each recording into its slot and builds the final video
 ```
 
-Recording uses your installed Google Chrome (set `CHROME_PATH` if it isn't found), because Google sign-in refuses automated browsers. Set `DEMO_CODE`, `ELEVENLABS_API_KEY`, `ARMORIQ_APPROVALS_URL`, `ARMORIQ_POLICY_URL` and `ARMORIQ_AUDIT_URL` in `.env` first. During the attack scene the terminal beeps: reject the held KSh 480,000 payment in the console window. Narration is cached, so a rerun only regenerates lines you changed.
+Set `DEMO_CODE` and `ELEVENLABS_API_KEY` in `.env` first. The first run prints how many seconds each console slot lasts; recordings longer than a slot are trimmed and shorter ones hold their last frame. Narration is cached, so reruns only regenerate lines you changed.
 
 ## Deploy
 
