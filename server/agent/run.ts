@@ -29,6 +29,8 @@ export interface RunDeps {
   modelLabel: string;
   maxToolCalls: number;
   maxModelCalls: number;
+  /** Maps a user's email to the identity ArmorIQ evaluates policy for (default: the email itself). */
+  identityFor?: (email: string) => string;
 }
 
 export interface RunInput {
@@ -90,7 +92,7 @@ export async function runAgent(deps: RunDeps, input: RunInput): Promise<void> {
   let handler: GuardHandler | undefined;
   if (input.protected && guard) {
     try {
-      handler = await guard.forUser(actor.email, {
+      handler = await guard.forUser((deps.identityFor ?? ((e: string) => e))(actor.email), {
         goal: input.message.slice(0, 500),
         onEvent: (kind, payload) => {
           if (!GUARD_KINDS.has(kind)) return;

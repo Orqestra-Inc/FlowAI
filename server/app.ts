@@ -4,7 +4,8 @@ import path from 'node:path';
 import express, { type Request, type Response } from 'express';
 import cookieParser from 'cookie-parser';
 import { MemorySaver } from '@langchain/langgraph';
-import { config } from './config.js';
+import { armoriqIdentity, config } from './config.js';
+import { runPolicyCheck } from './policy-check.js';
 import { seed, type DB } from './db.js';
 import { actorByEmail, requireActor, SESSION_COOKIE } from './auth.js';
 import { audit, listAudit } from './domain/audit.js';
@@ -225,6 +226,32 @@ export function createApp(db: DB, overrides: AppOverrides = {}) {
     res.json(await checkGuard());
   });
 
+  // Owner-only: run the fixed policy-check cases against live ArmorIQ (throwaway database, nothing real changes).
+  let checking = false;
+  let lastCheck = 0;
+  app.post('/api/armoriq/policy-check', auth, async (req, res) => {
+    if (req.actor!.role !== 'owner') {
+      res.status(403).json({ error: 'Only the owner can run the policy check.' });
+      return;
+    }
+    if (checking || Date.now() - lastCheck < 10_000) {
+      res.status(429).json({ error: 'A policy check just ran. Try again in a few seconds.' });
+      return;
+    }
+    checking = true;
+    try {
+      const injected = overrides.guard ? overrides.guard() : undefined;
+      const result = await runPolicyCheck(injected ? { guard: injected } : {});
+      audit(db, { businessId: req.actor!.businessId, userId: req.actor!.userId, source: 'app', action: 'policy_check', decision: 'info', reason: result.ok ? `${result.results.filter((r) => r.pass).length}/${result.results.length} as expected` : result.error });
+      res.json(result);
+    } catch (err) {
+      res.status(500).json({ ok: false, error: (err as Error).message, results: [] });
+    } finally {
+      checking = false;
+      lastCheck = Date.now();
+    }
+  });
+
   app.post('/api/demo/reset', auth, (req, res) => {
     if (!config.demoMode) {
       res.status(404).end();
@@ -306,7 +333,7 @@ export function createApp(db: DB, overrides: AppOverrides = {}) {
       await runAgent(
         {
           db, model, checkpointer, guard: isProtected ? guard : null, appName: config.appName, agentName: config.agentName,
-          modelLabel: config.llmModel, maxToolCalls: config.maxToolCalls, maxModelCalls: config.maxModelCalls,
+          modelLabel: config.llmModel, maxToolCalls: config.maxToolCalls, maxModelCalls: config.maxModelCalls, identityFor: armoriqIdentity,
         },
         { actor, message, chatId: `${chatId}${isProtected ? '' : '-unprotected'}`, protected: isProtected, emit, signal: controller.signal },
       );

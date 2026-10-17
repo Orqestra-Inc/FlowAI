@@ -18,6 +18,20 @@ function flag(name: string): boolean {
 
 const demoMode = flag('DEMO_MODE');
 
+function parseMap(raw: string): Record<string, string> {
+  const map: Record<string, string> = {};
+  for (const pair of raw.split(',')) {
+    const [from, to] = pair.split('=').map((v) => v?.trim().toLowerCase());
+    if (from && to) map[from] = to;
+  }
+  return map;
+}
+
+/** The identity ArmorIQ evaluates policy for. Defaults to the user's own email. */
+export function armoriqIdentity(email: string): string {
+  return config.armoriqIdentityMap[email.toLowerCase()] ?? email;
+}
+
 export const config = {
   appName: process.env.APP_NAME ?? 'Orqestra',
   /** The business agent's name, as users address it ("Ask Flow"). */
@@ -34,6 +48,11 @@ export const config = {
   armoriqAgentName: process.env.ARMORIQ_AGENT_NAME ?? 'orqestra-agent',
   armoriqMcpName: process.env.ARMORIQ_MCP_NAME ?? 'orqestra-erp',
   approvalWaitSeconds: num('APPROVAL_WAIT_SECONDS', 90),
+  /**
+   * Optional: which identity ArmorIQ sees for each Orqestra user, as "app@email=armoriq@email,...".
+   * Use it when Policy Studio member rules only match members of your ArmorIQ organization.
+   */
+  armoriqIdentityMap: parseMap(process.env.ARMORIQ_IDENTITY_MAP ?? ''),
 
   mcpBearerToken: process.env.MCP_BEARER_TOKEN ?? '',
 
