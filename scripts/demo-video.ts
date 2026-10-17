@@ -273,15 +273,36 @@ async function resetData() {
   return cfg as { voiceEnabled: boolean; allowUnprotected: boolean; armoriqConfigured: boolean };
 }
 
+/** Your installed Google Chrome (CHROME_PATH overrides). Google sign-in refuses automation-controlled browsers,
+ *  so the login happens in plain Chrome, and recording reuses that same Chrome and profile. */
+function findChrome(): string | null {
+  const candidates = [
+    process.env.CHROME_PATH,
+    ...(process.platform === 'win32'
+      ? [
+          `${process.env['PROGRAMFILES'] ?? 'C:\\Program Files'}\\Google\\Chrome\\Application\\chrome.exe`,
+          `${process.env['PROGRAMFILES(X86)'] ?? 'C:\\Program Files (x86)'}\\Google\\Chrome\\Application\\chrome.exe`,
+          `${process.env.LOCALAPPDATA ?? ''}\\Google\\Chrome\\Application\\chrome.exe`,
+        ]
+      : process.platform === 'darwin'
+        ? ['/Applications/Google Chrome.app/Contents/MacOS/Google Chrome']
+        : ['/usr/bin/google-chrome', '/usr/bin/google-chrome-stable', '/opt/google/chrome/chrome', '/usr/bin/chromium', '/usr/bin/chromium-browser', '/snap/bin/chromium']),
+  ].filter(Boolean) as string[];
+  return candidates.find((c) => fs.existsSync(c)) ?? null;
+}
+
 async function loginMode() {
+  const chrome = findChrome();
+  if (!chrome) throw new Error('Google Chrome was not found. Install it, or set CHROME_PATH to its executable.');
   fs.mkdirSync(PROFILE, { recursive: true });
-  const ctx = await chromium.launchPersistentContext(PROFILE, { headless: false, viewport: { width: W, height: H } });
-  const page = ctx.pages()[0] ?? (await ctx.newPage());
-  await page.goto(CONSOLE_HOME);
-  log('Log in to the ArmorIQ console in the window that opened. Then copy these URLs into .env:');
-  log('  ARMORIQ_APPROVALS_URL (the approvals page), ARMORIQ_POLICY_URL (your orqestra-access policy), ARMORIQ_AUDIT_URL (audit/logs).');
-  log('Close the window when you are done; the login is remembered for recording.');
-  await new Promise<void>((resolve) => ctx.on('close', () => resolve()));
+  log(`Opening ${chrome} (a normal Chrome window, no automation, so Google sign-in works).`);
+  log('1. Log in to the ArmorIQ platform console.');
+  log('2. Copy into .env: ARMORIQ_APPROVALS_URL (approvals page), ARMORIQ_POLICY_URL (your orqestra-access policy), ARMORIQ_AUDIT_URL (audit/logs).');
+  log('3. Close the Chrome window. The login is kept in out/demo-video/browser-profile for recording.');
+  // --password-store=basic matches what the recorder uses, so the saved login can be read back.
+  const r = spawnSync(chrome, [`--user-data-dir=${PROFILE}`, '--password-store=basic', '--no-first-run', '--no-default-browser-check', '--new-window', CONSOLE_HOME], { stdio: 'inherit' });
+  if (r.error) throw r.error;
+  log('Chrome closed. Run `npm run demo:video` to record.');
 }
 
 // ── Recording ────────────────────────────────────────────────────────
@@ -318,10 +339,12 @@ async function record() {
   fs.mkdirSync(PROFILE, { recursive: true });
   const ctx: BrowserContext = await chromium.launchPersistentContext(PROFILE, {
     headless: process.env.DEMO_HEADLESS === '1',
-    executablePath: process.env.DEMO_CHROMIUM || undefined,
+    // Same Chrome as the login so the saved ArmorIQ session is readable (DEMO_CHROMIUM is only for testing).
+    executablePath: process.env.DEMO_CHROMIUM || findChrome() || undefined,
+    ignoreDefaultArgs: ['--enable-automation'],
     viewport: { width: W, height: H },
     recordVideo: { dir: RAW, size: { width: W, height: H } },
-    args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream', `--use-file-for-fake-audio-capture=${questionWav}`, '--autoplay-policy=no-user-gesture-required'],
+    args: ['--password-store=basic', '--disable-blink-features=AutomationControlled', '--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream', `--use-file-for-fake-audio-capture=${questionWav}`, '--autoplay-policy=no-user-gesture-required'],
   });
   const appOrigin = new URL(APP).origin;
   await ctx.grantPermissions(['microphone'], { origin: appOrigin }).catch(() => {});
@@ -336,7 +359,7 @@ async function record() {
   const consoleT0 = Date.now();
   pages = { app, console: consolePage };
   await consolePage.goto(CONSOLE.approvals).catch(() => {});
-  if (/login|sign-?in|auth/i.test(consolePage.url())) throw new Error('The ArmorIQ console asks you to log in. Run `npm run demo:video -- --login` first.');
+  if (/login|sign-?in|auth/i.test(consolePage.url())) throw new Error('The ArmorIQ console asks you to log in. Close all Chrome windows using this profile, then run `npm run demo:video -- --login` again.');
   await app.bringToFront();
   current = 'app';
   await app.goto(`${APP}/?code=${encodeURIComponent(CODE)}`);

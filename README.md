@@ -145,11 +145,11 @@ During development: `npm run dev` (API on :8787, Vite on :5173).
 
 ```bash
 npx playwright install chromium ffmpeg   # once; also install ffmpeg itself (sudo apt install ffmpeg)
-npm run demo:video -- --login            # once: log in to the ArmorIQ console in the window that opens
+npm run demo:video -- --login            # once: opens your normal Google Chrome; log in to platform.armoriq.ai, then close it
 npm run demo:video                       # record (add --with-unprotected for the "ArmorIQ off" comparison)
 ```
 
-Set `DEMO_CODE`, `ELEVENLABS_API_KEY`, `ARMORIQ_APPROVALS_URL`, `ARMORIQ_POLICY_URL` and `ARMORIQ_AUDIT_URL` in `.env` first. During the attack scene the terminal beeps: reject the held KSh 480,000 payment in the console window. Narration is cached, so a rerun only regenerates lines you changed.
+Recording uses your installed Google Chrome (set `CHROME_PATH` if it isn't found), because Google sign-in refuses automated browsers. Set `DEMO_CODE`, `ELEVENLABS_API_KEY`, `ARMORIQ_APPROVALS_URL`, `ARMORIQ_POLICY_URL` and `ARMORIQ_AUDIT_URL` in `.env` first. During the attack scene the terminal beeps: reject the held KSh 480,000 payment in the console window. Narration is cached, so a rerun only regenerates lines you changed.
 
 ## Deploy
 
