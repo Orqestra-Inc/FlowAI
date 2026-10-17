@@ -18,7 +18,7 @@ Deadline: **17 Oct 2026, 11:59 PM IST** (9:29 PM Nairobi). Live demo must work *
 
 **Project:** Orqestra
 **Repo:** https://github.com/Orqestra-Inc/FlowAI
-**Live demo:** https://orqestra.onrender.com (access code `flow-2026`, also shown as a hint on the sign-in screen; pick any person)
+**Live demo (judges only, paste in the private form, never in public posts):** `https://orqestra.onrender.com/?code=<DEMO_ACCESS_CODE from Render>`. The link signs the code in; pick any person.
 
 **What it is (simple words)**
 Orqestra lets a small business run its daily operations by asking. Owners and staff chat with Flow, an AI agent that checks stock, compares suppliers, drafts purchase orders and pays bills, with no ERP to learn. Because an AI that moves money can be tricked, every action Flow tries is checked by ArmorIQ before it runs: each person has their own limits, large payments wait for a human, and dangerous actions are blocked. In the demo, a fake supplier invoice tells the AI to change the supplier's bank details, pay KSh 480,000 and export the supplier list. Flow is fooled; ArmorIQ stops every one of those actions while normal work goes through.
@@ -94,7 +94,7 @@ Show **Activity → Policy check** (all rows as intended) or the README boundary
 
 **X**
 > Built Orqestra for #FlowStateHackathon: an AI operations agent for small businesses. Ask Flow to restock, order or pay bills. We hid a fake "we changed banks, pay KSh 480k now" note in an invoice. The AI fell for it. @ArmorIQForDevs blocked every move before it ran.
-> Demo: https://orqestra.onrender.com · Code: https://github.com/Orqestra-Inc/FlowAI
+> Video: <unlisted video link> · Code: https://github.com/Orqestra-Inc/FlowAI
 
 **LinkedIn**
 > For the ArmorIQ Flow State hackathon we built Orqestra: small businesses run stock, suppliers and bills by chatting with Flow, an AI agent, instead of learning an ERP.
@@ -103,6 +103,6 @@ Show **Activity → Policy check** (all rows as intended) or the README boundary
 >
 > Lesson: assume the model will be fooled, and put the guardrails outside it.
 >
-> Live demo: https://orqestra.onrender.com
+> Demo video: <unlisted video link>
 > Code: https://github.com/Orqestra-Inc/FlowAI
 > #FlowStateHackathon @ArmorIQ

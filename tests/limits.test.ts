@@ -3,10 +3,10 @@ import { codeMatches, createChatLimiter } from '../server/limits.js';
 
 describe('demo protection', () => {
   it('checks the access code exactly', () => {
-    expect(codeMatches('flow-2026', 'flow-2026')).toBe(true);
-    expect(codeMatches(' flow-2026 ', 'flow-2026')).toBe(true);
-    expect(codeMatches('flow-2025', 'flow-2026')).toBe(false);
-    expect(codeMatches(undefined, 'flow-2026')).toBe(false);
+    expect(codeMatches('test-code-1', 'test-code-1')).toBe(true);
+    expect(codeMatches(' test-code-1 ', 'test-code-1')).toBe(true);
+    expect(codeMatches('test-code-0', 'test-code-1')).toBe(false);
+    expect(codeMatches(undefined, 'test-code-1')).toBe(false);
   });
 
   it('limits requests per hour per key and per day overall', () => {

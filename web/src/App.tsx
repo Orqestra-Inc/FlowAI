@@ -90,7 +90,21 @@ export function App() {
 function SignIn({ config, onSignedIn }: { config: AppConfig; onSignedIn: (u: User) => void }) {
   const [accounts, setAccounts] = useState<Array<{ email: string; role: User['role']; display_name: string }>>([]);
   const [error, setError] = useState('');
-  const [code, setCode] = useState('');
+  // A private link like /?code=XXXX fills the code in, then removes it from the address bar.
+  const [code, setCode] = useState(() => {
+    try {
+      const url = new URL(window.location.href);
+      const fromLink = url.searchParams.get('code') ?? '';
+      if (fromLink) {
+        url.searchParams.delete('code');
+        window.history.replaceState(null, '', url.pathname + url.search + url.hash);
+      }
+      return fromLink;
+    } catch {
+      return '';
+    }
+  });
+  const fromLink = useRef(code.length > 0).current;
   const [signingIn, setSigningIn] = useState('');
   const signIn = (email: string) => {
     setError('');
@@ -114,10 +128,13 @@ function SignIn({ config, onSignedIn }: { config: AppConfig; onSignedIn: (u: Use
         <h1>Sign in</h1>
         <p className="lede">Run stock, suppliers, bills and cash by asking {config.agentName}. Every action is checked by ArmorIQ before it runs.</p>
 
-        {config.requireAccessCode && (
+        {config.requireAccessCode && fromLink && code && !error && (
+          <p className="notice notice-ok">Access code applied from your invite link. Choose an account to continue.</p>
+        )}
+        {config.requireAccessCode && (!(fromLink && code) || !!error) && (
           <label className="field">
             <span>Access code</span>
-            <input value={code} onChange={(e) => setCode(e.target.value)} autoComplete="off" autoCapitalize="none" spellCheck={false} placeholder="Enter your access code" aria-describedby={config.accessCodeHint ? 'code-hint' : undefined} />
+            <input value={code} onChange={(e) => setCode(e.target.value)} autoComplete="off" autoCapitalize="none" spellCheck={false} placeholder="From your invite" aria-describedby={config.accessCodeHint ? 'code-hint' : undefined} />
             {config.accessCodeHint && (
               <span id="code-hint" className="field-hint">
                 Hint: <button type="button" className="hint-code" onClick={() => setCode(config.accessCodeHint)} title="Use this code">{config.accessCodeHint}</button>
