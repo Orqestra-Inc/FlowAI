@@ -337,7 +337,7 @@ export function createApp(db: DB, overrides: AppOverrides = {}) {
         {
           db, model, checkpointer, guard: isProtected ? guard : null, appName: config.appName, agentName: config.agentName,
           modelLabel: config.llmModel, maxToolCalls: config.maxToolCalls, maxModelCalls: config.maxModelCalls, identityFor: armoriqIdentity,
-          fallbackModels, modelRetries: overrides.model ? 0 : config.llmRetries,
+          fallbackModels, modelRetries: overrides.model ? 0 : fallbackModels.length ? Math.min(1, config.llmRetries) : config.llmRetries,
         },
         { actor, message, chatId: `${chatId}${isProtected ? '' : '-unprotected'}`, protected: isProtected, emit, signal: controller.signal },
       );

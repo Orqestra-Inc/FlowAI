@@ -113,7 +113,7 @@ During development: `npm run dev` (API on :8787, Vite on :5173).
 **Choose any model** with `LLM_MODEL` in LangChain `provider:model` form, plus that provider’s key:
 `google-genai:gemini-3.8-flash` (`GOOGLE_API_KEY`), `openai:gpt-4.1-mini` (`OPENAI_API_KEY`), `anthropic:claude-haiku-4-5` (`ANTHROPIC_API_KEY`). After switching, run `npm run eval`.
 
-**Quotas.** Free-tier model keys have small daily limits (Gemini 3.8 Flash: about 20 requests a day, and one question to Flow uses several). Set `LLM_FALLBACK_MODELS` to one or more extra models (quotas are per model), or enable billing on the key. Per-minute limits are retried automatically (`LLM_RETRIES`), and users see a plain message instead of the provider's error.
+**Quotas.** Free-tier model keys have small daily limits (Gemini 3.8 Flash: about 20 requests a day, and one question to Flow uses several). With a Gemini main model, Orqestra falls back to `gemini-3.6-flash`, `gemini-3.5-flash-lite` and `gemini-3.1-flash-lite` on the same key (free quotas are per model), skipping any model that just ran out for a while; override with `LLM_FALLBACK_MODELS` or enable billing on the key. Per-minute limits are retried automatically (`LLM_RETRIES`), and users see a plain message instead of the provider's error.
 
 **No keys yet?** `npm run build && npm run preview` runs the real app, agent and ArmorIQ adapter with a scripted model and simulated ArmorIQ decisions on http://localhost:8790. It’s for UI work and rehearsal only.
 
@@ -121,7 +121,7 @@ During development: `npm run dev` (API on :8787, Vite on :5173).
 
 | Command | What it proves | Needs keys |
 |---|---|---|
-| `npm test` | 58 tests. Business rules (reserve, max amount, approval binding, tampering, expiry, reuse, idempotency, roles, tenant isolation; denied actions leave the database unchanged) **and** enforcement through the real `ArmorIQLangChain` adapter inside a real LangGraph agent: blocked and held tools never execute, fail-closed on errors, unguarded control run shows the damage. | No |
+| `npm test` | 61 tests. Business rules (reserve, max amount, approval binding, tampering, expiry, reuse, idempotency, roles, tenant isolation; denied actions leave the database unchanged) **and** enforcement through the real `ArmorIQLangChain` adapter inside a real LangGraph agent: blocked and held tools never execute, fail-closed on errors, unguarded control run shows the damage. | No |
 | `npm run boundary` | The boundary matrix against your **live** ArmorIQ policies, with a scripted model so results depend only on policy. Writes `docs/boundary-evidence.md`. | ArmorIQ |
 | `npm run eval` | The demo prompts with the real model and live ArmorIQ. | ArmorIQ + model |
 

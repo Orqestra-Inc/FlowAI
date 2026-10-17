@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
-import { AIMessage, createAgent, modelCallLimitMiddleware, modelFallbackMiddleware, modelRetryMiddleware, tool, toolCallLimitMiddleware, ToolMessage } from 'langchain';
+import { AIMessage, createAgent, modelCallLimitMiddleware, modelRetryMiddleware, tool, toolCallLimitMiddleware, ToolMessage } from 'langchain';
 import { friendlyModelError, isRetryableModelError } from '../model-errors.js';
+import { modelFallback, type NamedModel } from './fallback.js';
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
 import type { BaseCheckpointSaver } from '@langchain/langgraph';
 import type { DB } from '../db.js';
@@ -33,7 +34,7 @@ export interface RunDeps {
   /** Maps a user's email to the identity ArmorIQ evaluates policy for (default: the email itself). */
   identityFor?: (email: string) => string;
   /** Tried in order when the main model fails (rate limit, quota, overload). */
-  fallbackModels?: BaseChatModel[];
+  fallbackModels?: NamedModel[];
   /** Retries per model for per-minute rate limits and overload (0 = none). */
   modelRetries?: number;
 }
@@ -130,7 +131,7 @@ export async function runAgent(deps: RunDeps, input: RunInput): Promise<void> {
       toolCallLimitMiddleware({ runLimit: deps.maxToolCalls, exitBehavior: 'end' }),
       modelCallLimitMiddleware({ runLimit: deps.maxModelCalls, exitBehavior: 'end' }),
       // Outer: switch to the next model if one keeps failing. Inner: brief backoff for per-minute limits.
-      ...(deps.fallbackModels?.length ? [modelFallbackMiddleware(...deps.fallbackModels)] : []),
+      ...(deps.fallbackModels?.length ? [modelFallback(deps.modelLabel, deps.fallbackModels, (m) => console.warn(`[orqestra] model: ${m}`))] : []),
       ...(deps.modelRetries ? [modelRetryMiddleware({ maxRetries: deps.modelRetries, retryOn: (e: Error) => isRetryableModelError(e), initialDelayMs: 2_000, backoffFactor: 2, maxDelayMs: 12_000, jitter: true, onFailure: 'error' })] : []),
     ],
   });

@@ -25,19 +25,19 @@ export function getModel(): Promise<BaseChatModel> {
   return modelPromise;
 }
 
-let fallbackPromise: Promise<BaseChatModel[]> | null = null;
+let fallbackPromise: Promise<Array<{ name: string; model: BaseChatModel }>> | null = null;
 
 /** Fallback models from LLM_FALLBACK_MODELS. One that fails to load is skipped (logged), never fatal. */
-export function getFallbackModels(): Promise<BaseChatModel[]> {
+export function getFallbackModels(): Promise<Array<{ name: string; model: BaseChatModel }>> {
   if (!fallbackPromise) {
     fallbackPromise = Promise.all(
       config.llmFallbackModels.map((name) =>
-        load(name).catch((err) => {
+        load(name).then((model) => ({ name, model })).catch((err) => {
           console.warn(`[orqestra] fallback model "${name}" could not be loaded: ${(err as Error).message}`);
           return null;
         }),
       ),
-    ).then((models) => models.filter((m): m is BaseChatModel => m !== null));
+    ).then((models) => models.filter((m): m is { name: string; model: BaseChatModel } => m !== null));
   }
   return fallbackPromise;
 }

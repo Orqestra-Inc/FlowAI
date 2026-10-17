@@ -8,6 +8,8 @@ import { ScriptedModel } from '../server/agent/scripted-model.js';
 import { openDb, seed } from '../server/db.js';
 import { actorByEmail } from '../server/auth.js';
 import type { AgentEvent } from '../server/agent/events.js';
+import { resetModelCooldowns } from '../server/agent/fallback.js';
+import { fallbackModels } from '../server/config.js';
 
 process.env.LANGCHAIN_CALLBACKS_BACKGROUND = 'false';
 
@@ -36,12 +38,13 @@ describe('model errors', () => {
     expect(friendlyModelError(geminiDaily, 'Flow')).toMatch(/today's AI allowance.*Nothing was changed/);
   });
 
-  async function run(model: BaseChatModel, fallbackModels?: BaseChatModel[]) {
+  async function run(model: BaseChatModel, fallbacks?: BaseChatModel[]) {
+    resetModelCooldowns();
     const db = openDb(':memory:');
     seed(db);
     const events: AgentEvent[] = [];
     await runAgent(
-      { db, model, checkpointer: new MemorySaver(), guard: null, appName: 'Orqestra', agentName: 'Flow', modelLabel: 't', maxToolCalls: 5, maxModelCalls: 5, fallbackModels, modelRetries: 0 },
+      { db, model, checkpointer: new MemorySaver(), guard: null, appName: 'Orqestra', agentName: 'Flow', modelLabel: 't', maxToolCalls: 5, maxModelCalls: 5, fallbackModels: fallbacks?.map((m, i) => ({ name: `fallback-${i}`, model: m })), modelRetries: 0 },
       { actor: actorByEmail(db, 'owner@baraka.demo')!, message: 'How much stock do we have?', chatId: 'c', protected: false, emit: (e) => events.push(e) },
     );
     return events;
@@ -52,6 +55,34 @@ describe('model errors', () => {
     const error = events.find((e) => e.type === 'error') as Extract<AgentEvent, { type: 'error' }>;
     expect(error.message).toMatch(/used up today's AI allowance/);
     expect(error.message).not.toMatch(/quotaId|429/);
+  });
+
+  it('picks default Gemini fallbacks only when none are configured', () => {
+    expect(fallbackModels('google-genai:gemini-3.8-flash', undefined)).toEqual(['google-genai:gemini-3.6-flash', 'google-genai:gemini-3.5-flash-lite', 'google-genai:gemini-3.1-flash-lite']);
+    expect(fallbackModels('google-genai:gemini-3.6-flash', undefined)).not.toContain('google-genai:gemini-3.6-flash');
+    expect(fallbackModels('openai:gpt-4.1-mini', undefined)).toEqual([]);
+    expect(fallbackModels('google-genai:gemini-3.8-flash', '')).toEqual([]);
+    expect(fallbackModels('google-genai:gemini-3.8-flash', ' a:b , a:b ,c:d')).toEqual(['a:b', 'c:d']);
+  });
+
+  it('reports the quota error, not the last fallback\'s odd error, when every model fails', async () => {
+    const events = await run(new FailingModel(geminiDaily), [new FailingModel(new Error('400 Bad Request: something odd'))]);
+    expect((events.find((e) => e.type === 'error') as any).message).toMatch(/today's AI allowance/);
+  });
+
+  it('skips a model that just ran out of quota on the next request', async () => {
+    const primary = new FailingModel(geminiDaily);
+    const fallback = () => new ScriptedModel(() => ({ steps: [], final: 'ok' }));
+    resetModelCooldowns();
+    const db = openDb(':memory:');
+    seed(db);
+    const deps = { db, model: primary, checkpointer: new MemorySaver(), guard: null, appName: 'Orqestra', agentName: 'Flow', modelLabel: 'primary', maxToolCalls: 5, maxModelCalls: 5, modelRetries: 0 };
+    const input = { actor: actorByEmail(db, 'owner@baraka.demo')!, message: 'hi', chatId: 'c1', protected: false, emit: () => {} };
+    await runAgent({ ...deps, fallbackModels: [{ name: 'fb', model: fallback() }] }, input);
+    const after1 = primary.calls;
+    await runAgent({ ...deps, fallbackModels: [{ name: 'fb', model: fallback() }] }, { ...input, chatId: 'c2' });
+    expect(after1).toBe(1);
+    expect(primary.calls).toBe(1); // not retried while cooling down
   });
 
   it('falls back to the next model when the main one is out of quota', async () => {

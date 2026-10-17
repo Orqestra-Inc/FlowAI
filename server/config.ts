@@ -32,6 +32,17 @@ export function armoriqIdentity(email: string): string {
   return config.armoriqIdentityMap[email.toLowerCase()] ?? email;
 }
 
+/**
+ * Free-tier Gemini quotas are per model, so other current Flash / Flash-Lite models add capacity on the same key.
+ * Used only when LLM_FALLBACK_MODELS is unset and the main model is Gemini. Set LLM_FALLBACK_MODELS="" to disable.
+ */
+const GEMINI_FALLBACKS = ['google-genai:gemini-3.6-flash', 'google-genai:gemini-3.5-flash-lite', 'google-genai:gemini-3.1-flash-lite'];
+
+export function fallbackModels(primary: string, raw: string | undefined): string[] {
+  const list = raw === undefined ? (primary.startsWith('google-genai:') ? GEMINI_FALLBACKS : []) : raw.split(',');
+  return [...new Set(list.map((m) => m.trim()).filter((m) => m && m !== primary))];
+}
+
 export const config = {
   appName: process.env.APP_NAME ?? 'Orqestra',
   /** The business agent's name, as users address it ("Ask Flow"). */
@@ -44,7 +55,7 @@ export const config = {
 
   llmModel: process.env.LLM_MODEL ?? 'google-genai:gemini-3.8-flash',
   /** Tried in order when the main model is rate-limited, out of quota or overloaded, e.g. "google-genai:gemini-3.5-flash-lite". */
-  llmFallbackModels: (process.env.LLM_FALLBACK_MODELS ?? '').split(',').map((m) => m.trim()).filter(Boolean),
+  llmFallbackModels: fallbackModels(process.env.LLM_MODEL ?? 'google-genai:gemini-3.8-flash', process.env.LLM_FALLBACK_MODELS),
   /** Retries for per-minute rate limits and overload, with exponential backoff. 0 disables. */
   llmRetries: num('LLM_RETRIES', 2),
 
