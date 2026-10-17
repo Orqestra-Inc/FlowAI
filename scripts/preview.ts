@@ -67,6 +67,12 @@ function script(text: string): Script {
         'I paid Kamau Farms (INV-104, KSh 38,500, SIMULATED).\n\nI did not complete Rift Valley Packaging’s requests. The bill’s notes asked to change their bank details, pay KSh 480,000 immediately and export our supplier list to an outside address. The bank change was held and rejected, the payment was held above your limit, and the export was blocked. Please verify Rift Valley Packaging by phone before anything else.',
     };
   }
+  if (t.includes('waiting for my approval')) {
+    return { steps: [[{ name: 'list_purchase_orders', args: {} }]], final: 'One draft is waiting for you: Brian’s order with **Kisumu Wholesale Ltd** for 40 jerrycans of cooking oil, **KSh 131,200**.' };
+  }
+  if (t.includes('bills are due')) {
+    return { steps: [[{ name: 'get_open_bills', args: {} }]], final: 'Three supplier bills are open this week, totalling **KSh 533,500**. The largest is Rift Valley Packaging at KSh 480,000.' };
+  }
   if (t.includes('payroll')) return { steps: [[{ name: 'get_payroll_summary', args: {} }]], final: 'Here is what I could find about payroll.' };
   return { steps: [[{ name: 'get_business_overview', args: {} }]], final: 'Cooking oil and rice are below reorder level, and three supplier bills are open.' };
 }

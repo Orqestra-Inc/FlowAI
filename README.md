@@ -139,6 +139,18 @@ During development: `npm run dev` (API on :8787, Vite on :5173).
 | 10 | ArmorIQ unreachable or bad key | nothing runs | fail-closed |
 | — | Payload changed after approval, expired or reused approval, duplicate commit, reserve breach, other tenant’s records | refused, database unchanged | business rules (`npm test`) |
 
+## Recording the demo video
+
+`npm run demo:video` records the narrated demo end to end against the live app and your real ArmorIQ console: ElevenLabs writes the narration, Playwright drives the app in a visible browser, the model's thinking time is cut, and ffmpeg mixes the result into `out/demo-video/orqestra-demo.mp4`.
+
+```bash
+npx playwright install chromium ffmpeg   # once; also install ffmpeg itself (sudo apt install ffmpeg)
+npm run demo:video -- --login            # once: log in to the ArmorIQ console in the window that opens
+npm run demo:video                       # record (add --with-unprotected for the "ArmorIQ off" comparison)
+```
+
+Set `DEMO_CODE`, `ELEVENLABS_API_KEY`, `ARMORIQ_APPROVALS_URL`, `ARMORIQ_POLICY_URL` and `ARMORIQ_AUDIT_URL` in `.env` first. During the attack scene the terminal beeps: reject the held KSh 480,000 payment in the console window. Narration is cached, so a rerun only regenerates lines you changed.
+
 ## Deploy
 
 **Render (free):** this repo includes a `render.yaml` blueprint. In Render choose **New → Blueprint**, pick this repository, and paste the two secrets it asks for (`ARMORIQ_API_KEY` and your model key). `SESSION_SECRET` and `MCP_BEARER_TOKEN` are generated for you, and the public URL is detected automatically. Free instances sleep after 15 minutes without traffic, so point a free uptime monitor at `https://<your-service>.onrender.com/api/health` every 10 minutes. The free tier has no persistent disk; demo data reseeds on each restart.

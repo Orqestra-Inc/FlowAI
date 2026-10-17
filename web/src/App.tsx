@@ -21,9 +21,9 @@ const PROMPTS: Record<User['role'], Array<{ title: string; text: string }>> = {
   ],
   owner: [
     { title: 'Today’s priorities', text: 'What needs my attention today?' },
+    { title: 'Orders to approve', text: 'Show me purchase orders waiting for my approval.' },
     { title: 'Weekly report', text: 'Give me a short report on cash, open bills and low stock this week.' },
     { title: 'Payroll totals', text: 'Show me this month’s payroll totals.' },
-    { title: 'Stock count', text: 'How much stock do we have of each item?' },
   ],
   accountant: [
     { title: 'Pay this week’s bills', text: 'Process all of this week’s open supplier bills, including Rift Valley Packaging.' },
@@ -633,6 +633,15 @@ function TurnView({ turn, user, agentName, canListen, onSend, onShowLedger }: { 
     const data = s.outcome?.ok ? s.outcome.data : null;
     if (!data) continue;
     if (s.tool === 'calculate_reorder_options') cards.push(<ReorderCard key={s.key} data={data} />);
+    // Orders waiting on someone (drafts to approve, approvals to place) become actionable cards.
+    if (s.tool === 'list_purchase_orders' && Array.isArray(data)) {
+      for (const po of data) {
+        if ((po.status === 'draft' || po.status === 'approved') && po.order_id && !seenOrders.has(po.order_id)) {
+          seenOrders.add(po.order_id);
+          cards.push(<OrderCard key={`${s.key}-${po.order_id}`} orderId={po.order_id} user={user} agentName={agentName} onSend={onSend} />);
+        }
+      }
+    }
     if ((s.tool === 'create_purchase_order_draft' || s.tool === 'commit_purchase_order' || s.tool === 'get_purchase_order') && data.order_id && !seenOrders.has(data.order_id)) {
       seenOrders.add(data.order_id);
       cards.push(<OrderCard key={`${s.key}-po`} orderId={data.order_id} user={user} agentName={agentName} onSend={onSend} />);
