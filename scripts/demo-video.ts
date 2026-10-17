@@ -37,7 +37,7 @@ const PROFILE = path.join(OUT, 'browser-profile');
 const APP = (process.env.DEMO_URL ?? 'https://orqestra.onrender.com').replace(/\/$/, '');
 const CODE = process.env.DEMO_CODE ?? process.env.DEMO_ACCESS_CODE ?? '';
 const KEY = process.env.ELEVENLABS_API_KEY ?? '';
-const CONSOLE_HOME = process.env.ARMORIQ_CONSOLE_URL ?? 'https://tools.armoriq.ai';
+const CONSOLE_HOME = process.env.ARMORIQ_CONSOLE_URL ?? 'https://platform.armoriq.ai';
 const CONSOLE = {
   approvals: process.env.ARMORIQ_APPROVALS_URL ?? CONSOLE_HOME,
   policy: process.env.ARMORIQ_POLICY_URL ?? CONSOLE_HOME,

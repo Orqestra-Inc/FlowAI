@@ -4,7 +4,7 @@ Deadline: **17 Oct 2026, 11:59 PM IST** (9:29 PM Nairobi). Live demo must work *
 
 ## Checklist
 
-- [ ] Every team member has **ArmorTools Pro** active (tools.armoriq.ai → Pro → code `FLOWSTATEPRO`). Unjudged without it.
+- [ ] Every team member has **ArmorTools Pro** active (tools.armoriq.ai → Pro → code `FLOWSTATEPRO`). Unjudged without it. (Pro is activated on tools.armoriq.ai; our policies, approvals and audit live on platform.armoriq.ai, which is the console to show in the video.)
 - [x] Policies live in **Policy Studio**. Verify with **Activity → Policy check** as Grace (optionally also `npm run boundary` locally and commit `docs/boundary-evidence.md`).
 - [ ] Live demo up at https://orqestra.onrender.com, with an uptime monitor on `/api/health` every 10 min **through 21 Oct**.
 - [ ] `ELEVENLABS_API_KEY` set in Render (enables Speak / Listen).

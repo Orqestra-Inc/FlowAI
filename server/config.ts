@@ -95,7 +95,7 @@ export const config = {
   /** Honoured only in demo mode: lets the owner run one request without ArmorIQ. */
   allowUnprotected: demoMode && flag('DEMO_ALLOW_UNPROTECTED'),
 
-  armoriqConsoleUrl: process.env.ARMORIQ_CONSOLE_URL ?? 'https://tools.armoriq.ai',
+  armoriqConsoleUrl: process.env.ARMORIQ_CONSOLE_URL ?? 'https://platform.armoriq.ai',
 };
 
 /** True when the ArmorIQ key at least has a valid shape. Real validity is checked at boot. */
