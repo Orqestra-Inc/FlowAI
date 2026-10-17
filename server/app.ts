@@ -13,7 +13,7 @@ import * as ops from './domain/operations.js';
 import { DomainRefusal } from './domain/types.js';
 import { mcpRouter } from './mcp.js';
 import { getGuard, checkGuard } from './armoriq.js';
-import { getModel } from './model.js';
+import { getFallbackModels, getModel } from './model.js';
 import { runAgent } from './agent/run.js';
 import { codeMatches, createChatLimiter } from './limits.js';
 import { getChat, listChats, saveTurn } from './domain/chats.js';
@@ -295,8 +295,10 @@ export function createApp(db: DB, overrides: AppOverrides = {}) {
     }
 
     let model;
+    let fallbackModels: Awaited<ReturnType<typeof getFallbackModels>> = [];
     try {
       model = await loadModel();
+      if (!overrides.model) fallbackModels = await getFallbackModels();
     } catch (err) {
       res.status(500).json({ error: `Model "${config.llmModel}" could not be loaded: ${(err as Error).message}` });
       return;
@@ -335,6 +337,7 @@ export function createApp(db: DB, overrides: AppOverrides = {}) {
         {
           db, model, checkpointer, guard: isProtected ? guard : null, appName: config.appName, agentName: config.agentName,
           modelLabel: config.llmModel, maxToolCalls: config.maxToolCalls, maxModelCalls: config.maxModelCalls, identityFor: armoriqIdentity,
+          fallbackModels, modelRetries: overrides.model ? 0 : config.llmRetries,
         },
         { actor, message, chatId: `${chatId}${isProtected ? '' : '-unprotected'}`, protected: isProtected, emit, signal: controller.signal },
       );

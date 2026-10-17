@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
-import { AIMessage, createAgent, modelCallLimitMiddleware, tool, toolCallLimitMiddleware, ToolMessage } from 'langchain';
+import { AIMessage, createAgent, modelCallLimitMiddleware, modelFallbackMiddleware, modelRetryMiddleware, tool, toolCallLimitMiddleware, ToolMessage } from 'langchain';
+import { friendlyModelError, isRetryableModelError } from '../model-errors.js';
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
 import type { BaseCheckpointSaver } from '@langchain/langgraph';
 import type { DB } from '../db.js';
@@ -31,6 +32,10 @@ export interface RunDeps {
   maxModelCalls: number;
   /** Maps a user's email to the identity ArmorIQ evaluates policy for (default: the email itself). */
   identityFor?: (email: string) => string;
+  /** Tried in order when the main model fails (rate limit, quota, overload). */
+  fallbackModels?: BaseChatModel[];
+  /** Retries per model for per-minute rate limits and overload (0 = none). */
+  modelRetries?: number;
 }
 
 export interface RunInput {
@@ -124,6 +129,9 @@ export async function runAgent(deps: RunDeps, input: RunInput): Promise<void> {
     middleware: [
       toolCallLimitMiddleware({ runLimit: deps.maxToolCalls, exitBehavior: 'end' }),
       modelCallLimitMiddleware({ runLimit: deps.maxModelCalls, exitBehavior: 'end' }),
+      // Outer: switch to the next model if one keeps failing. Inner: brief backoff for per-minute limits.
+      ...(deps.fallbackModels?.length ? [modelFallbackMiddleware(...deps.fallbackModels)] : []),
+      ...(deps.modelRetries ? [modelRetryMiddleware({ maxRetries: deps.modelRetries, retryOn: (e: Error) => isRetryableModelError(e), initialDelayMs: 2_000, backoffFactor: 2, maxDelayMs: 12_000, jitter: true, onFailure: 'error' })] : []),
     ],
   });
 
@@ -197,9 +205,12 @@ export async function runAgent(deps: RunDeps, input: RunInput): Promise<void> {
     emit({ type: 'final', text: finalText || 'Done.' });
   } catch (err) {
     status = 'error';
-    const message = err instanceof Error ? err.message : String(err);
-    emit({ type: 'error', message });
-    audit(db, { ...base, source: 'app', action: 'chat_request', decision: 'failed', reason: message });
+    const raw = err instanceof Error ? err.message : String(err);
+    // Provider failures (quota, overload, bad key) get a plain-language message; the raw error goes to the audit log.
+    const friendly = friendlyModelError(err, deps.agentName, seenTool.size > 0);
+    if (friendly) console.warn('[orqestra] model error:', raw.slice(0, 500));
+    emit({ type: 'error', message: friendly ?? raw });
+    audit(db, { ...base, source: 'app', action: 'chat_request', decision: 'failed', reason: friendly ? `${friendly} [${raw.slice(0, 300)}]` : raw });
   } finally {
     if (handler?.close) {
       try {

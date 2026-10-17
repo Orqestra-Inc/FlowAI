@@ -43,6 +43,10 @@ export const config = {
   databasePath: process.env.DATABASE_PATH ?? './data/orqestra.db',
 
   llmModel: process.env.LLM_MODEL ?? 'google-genai:gemini-3.8-flash',
+  /** Tried in order when the main model is rate-limited, out of quota or overloaded, e.g. "google-genai:gemini-3.5-flash-lite". */
+  llmFallbackModels: (process.env.LLM_FALLBACK_MODELS ?? '').split(',').map((m) => m.trim()).filter(Boolean),
+  /** Retries for per-minute rate limits and overload, with exponential backoff. 0 disables. */
+  llmRetries: num('LLM_RETRIES', 2),
 
   armoriqApiKey: process.env.ARMORIQ_API_KEY ?? '',
   armoriqAgentName: process.env.ARMORIQ_AGENT_NAME ?? 'orqestra-agent',

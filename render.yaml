@@ -20,7 +20,9 @@ services:
       - key: LLM_MODEL
         value: google-genai:gemini-3.8-flash
       - key: GOOGLE_API_KEY
-        sync: false           # or set OPENAI_API_KEY / ANTHROPIC_API_KEY and change LLM_MODEL
+        sync: false
+      - key: LLM_FALLBACK_MODELS
+        sync: false           # optional, e.g. a Flash-Lite model ID from AI Studio; tried when the main model hits its quota           # or set OPENAI_API_KEY / ANTHROPIC_API_KEY and change LLM_MODEL
       - key: ELEVENLABS_API_KEY
         sync: false           # optional: enables "Ask Flow by voice" and spoken replies
       - key: ARMORIQ_AGENT_NAME
