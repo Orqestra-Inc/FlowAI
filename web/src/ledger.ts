@@ -12,6 +12,8 @@ export interface Slip {
   /** Who decided: ArmorIQ, a business rule, or nobody (unprotected run). */
   decidedBy?: 'ArmorIQ' | 'Business rule' | 'Nobody';
   outcome?: any;
+  /** ArmorIQ approval request this hold is waiting on (match it in the console). */
+  delegationId?: string;
 }
 
 /** Fold the event stream of one run into receipt slips, one per tool call. */
@@ -31,6 +33,7 @@ export function deriveSlips(events: AgentEvent[]): Slip[] {
       const slip = open(e.tool, ['checking', 'held', 'approved']);
       if (!slip) continue;
       slip.decidedBy = 'ArmorIQ';
+      if (e.delegationId) slip.delegationId = e.delegationId;
       if (e.kind === 'hold') {
         slip.status = 'held';
         slip.reason = e.reason ?? 'Waiting for approval';

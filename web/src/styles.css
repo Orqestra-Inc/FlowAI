@@ -374,6 +374,8 @@ h1, h2, h3, p { margin: 0; }
 .slip-tool { font-weight: 650; font-size: 0.95rem; }
 .slip-args { margin-top: 2px; color: var(--muted); font-size: 0.82rem; overflow-wrap: anywhere; }
 .slip-reason { margin-top: 6px; font-size: 0.82rem; color: var(--muted); }
+.slip-id { margin-top: 6px; font-size: 0.75rem; color: var(--muted); overflow-wrap: anywhere; }
+.slip-id code { font-size: 0.72rem; background: var(--surface-2); padding: 1px 5px; border-radius: 4px; }
 .slip-link { display: inline-block; margin-top: 6px; font-size: 0.82rem; color: var(--hold); font-weight: 600; }
 
 .stamp {

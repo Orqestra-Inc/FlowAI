@@ -824,6 +824,13 @@ function SlipView({ slip, consoleUrl }: { slip: Slip; consoleUrl: string }) {
         {slip.status === 'held' && (
           <a className="slip-link" href={consoleUrl} target="_blank" rel="noreferrer">Open ArmorIQ approvals</a>
         )}
+        {slip.decidedBy === 'ArmorIQ' && (slip.status === 'held' || slip.status === 'approved' || (slip.status === 'blocked' && /approval/i.test(slip.reason ?? ''))) && (
+          <p className="slip-id">
+            {slip.delegationId
+              ? <>Approval request <code>{slip.delegationId}</code></>
+              : 'ArmorIQ returned no approval request ID, so this hold cannot be approved from the console.'}
+          </p>
+        )}
       </div>
       <span className="stamp" aria-label={`Decision: ${STAMP_TEXT[slip.status]}`}>{STAMP_TEXT[slip.status]}</span>
     </li>
