@@ -141,6 +141,15 @@ During development: `npm run dev` (API on :8787, Vite on :5173).
 
 ## Recording the demo video
 
+**Simplest:** record the screen yourself without talking, following the timed demo script, then add the ElevenLabs narration:
+
+```bash
+npm run narrate -- ~/Videos/your-recording.webm   # writes your-recording-narrated.mp4 (add --offset 2 if the timer started 2 s late)
+```
+
+**Fully automated (optional):**
+
+
 `npm run demo:video` records the narrated demo against the live app: ElevenLabs writes the narration, Playwright drives the app, the model's thinking time is cut, and ffmpeg mixes the result into `out/demo-video/orqestra-demo.mp4`. The ArmorIQ console scenes are your own screen recordings (your normal browser, so passkey or Google sign-in works).
 
 ```bash

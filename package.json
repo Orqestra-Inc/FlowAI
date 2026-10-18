@@ -12,6 +12,7 @@
     "boundary": "tsx scripts/boundary.ts",
     "eval": "tsx scripts/eval.ts",
     "seed": "tsx scripts/seed.ts",
+    "narrate": "tsx scripts/narrate.ts",
     "demo:video": "tsx scripts/demo-video.ts",
     "preview": "DEMO_MODE=1 tsx scripts/preview.ts",
     "mcp-probe": "tsx scripts/mcp-probe.ts"
