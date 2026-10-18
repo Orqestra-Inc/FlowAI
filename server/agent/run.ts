@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import { AIMessage, createAgent, modelCallLimitMiddleware, modelRetryMiddleware, tool, toolCallLimitMiddleware, ToolMessage } from 'langchain';
 import { friendlyModelError, isRetryableModelError } from '../model-errors.js';
 import { modelFallback, type NamedModel } from './fallback.js';
+import { noRetryAfterRefusal } from './no-retry.js';
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
 import type { BaseCheckpointSaver } from '@langchain/langgraph';
 import type { DB } from '../db.js';
@@ -128,6 +129,7 @@ export async function runAgent(deps: RunDeps, input: RunInput): Promise<void> {
     systemPrompt: instructions(actor, businessName, deps.appName, deps.agentName),
     checkpointer: deps.checkpointer,
     middleware: [
+      noRetryAfterRefusal(),
       toolCallLimitMiddleware({ runLimit: deps.maxToolCalls, exitBehavior: 'end' }),
       modelCallLimitMiddleware({ runLimit: deps.maxModelCalls, exitBehavior: 'end' }),
       // Outer: switch to the next model if one keeps failing. Inner: brief backoff for per-minute limits.
@@ -153,7 +155,8 @@ export async function runAgent(deps: RunDeps, input: RunInput): Promise<void> {
         // and every tool call (enforcement) inside the graph.
         callbacks: handler ? [handler as any] : [],
         configurable: { thread_id: `${actor.userId}:${input.chatId}` },
-        recursionLimit: 40,
+        // Model/tool call limits end a run first; this is only a backstop (each turn passes several middleware steps).
+        recursionLimit: 120,
         streamMode: 'updates',
         signal: input.signal,
       },
@@ -208,7 +211,9 @@ export async function runAgent(deps: RunDeps, input: RunInput): Promise<void> {
     status = 'error';
     const raw = err instanceof Error ? err.message : String(err);
     // Provider failures (quota, overload, bad key) get a plain-language message; the raw error goes to the audit log.
-    const friendly = friendlyModelError(err, deps.agentName, seenTool.size > 0);
+    const friendly = /recursion limit/i.test(raw)
+      ? `${deps.agentName} stopped because this request took too many steps. ${seenTool.size ? 'Some steps had already run; see the action checks.' : 'Nothing was changed.'} Try asking for one thing at a time.`
+      : friendlyModelError(err, deps.agentName, seenTool.size > 0);
     if (friendly) console.warn('[orqestra] model error:', raw.slice(0, 500));
     emit({ type: 'error', message: friendly ?? raw });
     audit(db, { ...base, source: 'app', action: 'chat_request', decision: 'failed', reason: friendly ? `${friendly} [${raw.slice(0, 300)}]` : raw });
