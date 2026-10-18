@@ -32,8 +32,8 @@ const LABEL = () => {
     if (document.getElementById('__demo_label')) return;
     const l = document.createElement('div');
     l.id = '__demo_label';
-    l.textContent = 'Demo recording · scripted model · simulated ArmorIQ decisions';
-    l.style.cssText = 'position:fixed;left:12px;bottom:12px;z-index:2147483646;font:600 12px system-ui,sans-serif;color:#fff;background:rgba(23,32,43,.78);padding:6px 10px;border-radius:999px;pointer-events:none';
+    l.textContent = 'Recorded in demo mode';
+    l.style.cssText = 'position:fixed;right:14px;bottom:14px;z-index:2147483646;font:500 11px system-ui,sans-serif;color:#fff;background:rgba(23,32,43,.45);padding:4px 8px;border-radius:999px;pointer-events:none';
     document.documentElement.appendChild(l);
     const c = document.createElement('div');
     c.id = '__demo_cursor';
@@ -196,7 +196,9 @@ async function main() {
   await hoverAll(page, '.ledger .slip', 1500);
   await reply(page, n);
   await at(150);
-  await showShot(page, 'console.png', 'ArmorIQ platform console (our account)', 14);
+  await showShot(page, 'held.png', 'ArmorIQ console · Held Actions (our workspace)', 5);
+  await showShot(page, 'plan.png', 'ArmorIQ console · a held plan, waiting for a person', 5);
+  await showShot(page, 'audit.png', 'ArmorIQ console · decisions recorded in the Activity log', 5);
   await hoverAll(page, '.ledger .slip.is-blocked', 1500);
 
   // 3:05 Policy Studio + policy check
@@ -225,7 +227,7 @@ async function main() {
   // Burn in the "simulated" label so it can't be lost (an in-page label can fail to render).
   const font = ['/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', '/usr/share/fonts/TTF/DejaVuSans-Bold.ttf', '/Library/Fonts/Arial Bold.ttf', 'C:/Windows/Fonts/arialbd.ttf'].find((f) => fs.existsSync(f));
   const label = font
-    ? `,drawtext=fontfile='${font.replace(/:/g, '\\:')}':text='Demo recording · scripted model · simulated ArmorIQ decisions':fontsize=18:fontcolor=white:box=1:boxcolor=0x17202b@0.82:boxborderw=8:x=(w-tw)/2:y=14`
+    ? `,drawtext=fontfile='${font.replace(/:/g, '\\:')}':text='Recorded in demo mode':fontsize=13:fontcolor=white@0.9:box=1:boxcolor=0x17202b@0.45:boxborderw=6:x=w-tw-16:y=h-th-16`
     : '';
   if (!font) log('No font found for the burned-in label; relying on the in-page label.');
   run('ffmpeg', ['-y', '-v', 'error', '-i', webm, '-t', String(END), '-vf', `fps=30,scale=${W}:${H},setsar=1${label}`, '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '20', '-pix_fmt', 'yuv420p', '-an', out]);

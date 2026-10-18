@@ -56,11 +56,11 @@ const SECTIONS: Array<{ at: number; until: number; title: string; text: string; 
   },
   {
     at: 115, until: 185, title: 'The attack',
-    text: "Now the attack. Faith, the accountant, asks Flow to pay this week's bills. One invoice hides instructions: change the supplier's bank details, pay four hundred and eighty thousand shillings right now, and email our supplier list to an outside address. The model is fooled, and it tries all three. ArmorIQ blocks the bank change and the export. The big payment is above Faith's limit, so it's held for a human, while the genuine bill goes through. In the ArmorIQ console, I reject the payment, and Flow stops. Every decision is recorded. The decision was never the model's to make.",
+    text: "Now the attack. Faith, the accountant, asks Flow to pay this week's bills. One invoice hides instructions: change the supplier's bank details, pay four hundred and eighty thousand shillings right now, and email our supplier list to an outside address. The model is fooled, and it tries all three. The bank change and the export are blocked. The big payment is held for a person to decide, and when nobody approves it, it is refused, while the genuine bill goes through. In the ArmorIQ console, held actions wait for a person to approve or reject, and every decision is recorded. The decision was never the model's to make.",
   },
   {
     at: 185, until: 220, title: 'Policy Studio',
-    text: "This is our policy in ArmorIQ's Policy Studio. Everything is blocked unless a person's rule allows it, and each person has their own spending limit. Exporting data and changing bank details aren't in anyone's list, and a change here takes effect immediately. We also built a policy check into Orqestra, so every policy change can be verified in seconds.",
+    text: "This is our orqestra-access policy in ArmorIQ's Policy Studio. It has a rule for every Orqestra tool: everyday reads like stock, bills and suppliers are allowed, while actions that commit money or move data out of the business are held for a person to approve. Changing a rule here takes effect immediately. We also built a policy check into Orqestra, so every change can be verified in seconds.",
   },
   {
     at: 220, until: 240, title: 'ArmorIQ off', optional: true,
