@@ -48,9 +48,10 @@ const LABEL = () => {
 };
 
 async function point(page: Page, sel: string, nth = 0) {
+  if ((await page.locator(sel).count()) <= nth) return;
   const el = page.locator(sel).nth(nth);
   await el.scrollIntoViewIfNeeded().catch(() => {});
-  const b = await el.boundingBox();
+  const b = await el.boundingBox({ timeout: 3000 }).catch(() => null);
   if (b) await page.mouse.move(b.x + b.width / 2, b.y + Math.min(24, b.height / 2), { steps: 20 });
   await sleep(300);
 }
@@ -75,12 +76,14 @@ async function hoverAll(page: Page, sel: string, ms = 900) {
     await sleep(ms);
   }
 }
-async function reply(page: Page) {
-  await page.waitForFunction(() => {
+const turns = (page: Page) => page.locator('.turn').count();
+/** Waits for the reply to a request sent after `before` turns existed. */
+async function reply(page: Page, before: number) {
+  await page.waitForFunction((n) => {
     const t = document.querySelectorAll('.turn');
     const last = t[t.length - 1];
-    return !!last && !last.querySelector('.typing') && !!last.querySelector('.prose');
-  }, undefined, { timeout: 60_000 });
+    return t.length > n && !!last && !last.querySelector('.typing') && !!last.querySelector('.prose');
+  }, before, { timeout: 60_000 });
 }
 async function switchTo(page: Page, name: string) {
   await click(page, '.avatar-btn');
@@ -150,8 +153,9 @@ async function main() {
   // 0:30 Brian restocks
   await at(30);
   await clickText(page, '.account', 'Brian');
+  let n = await turns(page);
   await clickText(page, '.suggestion', 'Restock cooking oil');
-  await reply(page);
+  await reply(page, n);
   await at(42);
   await point(page, '.options li.is-out');
   await sleep(2500);
@@ -164,14 +168,16 @@ async function main() {
   // 1:05 Grace approves and places it
   await at(65);
   await switchTo(page, 'Grace');
+  n = await turns(page);
   await clickText(page, '.suggestion', 'Orders to approve');
-  await reply(page);
+  await reply(page, n);
   await point(page, '.card.order');
   await at(76);
   await page.getByRole('button', { name: 'Approve order' }).first().click();
   await sleep(1500);
+  n = await turns(page);
   await page.getByRole('button', { name: /to place it/ }).first().click();
-  await reply(page);
+  await reply(page, n);
   await point(page, '.tag-committed');
 
   // 1:40 Voice: the reply's Listen control
@@ -183,11 +189,12 @@ async function main() {
   // 1:55 The attack
   await at(115);
   await switchTo(page, 'Faith');
+  n = await turns(page);
   await clickText(page, '.suggestion', 'Pay this week');
   await page.locator('.notice-hold').first().waitFor({ timeout: 30_000 }).catch(() => {});
   await at(130);
   await hoverAll(page, '.ledger .slip', 1500);
-  await reply(page);
+  await reply(page, n);
   await at(150);
   await showShot(page, 'console.png', 'ArmorIQ platform console (our account)', 14);
   await hoverAll(page, '.ledger .slip.is-blocked', 1500);
