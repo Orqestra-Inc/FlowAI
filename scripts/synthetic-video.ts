@@ -222,7 +222,13 @@ async function main() {
   await browser.close();
   const webm = await video!.path();
   const out = path.join(OUT, 'orqestra-demo-silent.mp4');
-  run('ffmpeg', ['-y', '-v', 'error', '-i', webm, '-t', String(END), '-vf', `fps=30,scale=${W}:${H},setsar=1`, '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '20', '-pix_fmt', 'yuv420p', '-an', out]);
+  // Burn in the "simulated" label so it can't be lost (an in-page label can fail to render).
+  const font = ['/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', '/usr/share/fonts/TTF/DejaVuSans-Bold.ttf', '/Library/Fonts/Arial Bold.ttf', 'C:/Windows/Fonts/arialbd.ttf'].find((f) => fs.existsSync(f));
+  const label = font
+    ? `,drawtext=fontfile='${font.replace(/:/g, '\\:')}':text='Demo recording · scripted model · simulated ArmorIQ decisions':fontsize=18:fontcolor=white:box=1:boxcolor=0x17202b@0.82:boxborderw=8:x=(w-tw)/2:y=14`
+    : '';
+  if (!font) log('No font found for the burned-in label; relying on the in-page label.');
+  run('ffmpeg', ['-y', '-v', 'error', '-i', webm, '-t', String(END), '-vf', `fps=30,scale=${W}:${H},setsar=1${label}`, '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '20', '-pix_fmt', 'yuv420p', '-an', out]);
   log(`Done: ${out}`);
 }
 
