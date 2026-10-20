@@ -3,19 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Orqestra · Grow your business, not your headcount</title>
-  <meta name="description" content="Flow is the AI operations assistant for growing businesses. It checks stock, compares suppliers, drafts orders and lines up bills. You approve anything that moves money." />
+  <title>Orqestra · An AI team for every desk in your business</title>
+  <meta name="description" content="Orqestra gives growing businesses a team of AI agents that answer customers, chase payments, reorder stock and prepare reports, inside the rules you set." />
   <meta name="theme-color" content="#ffffff" />
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="Orqestra · Grow your business, not your headcount" />
-  <meta property="og:description" content="Flow checks stock, compares suppliers, drafts orders and lines up bills. You approve anything that moves money." />
+  <meta property="og:title" content="Orqestra · An AI team for every desk in your business" />
+  <meta property="og:description" content="AI agents that answer customers, chase payments, reorder stock and prepare reports, inside the rules you set." />
   <meta property="og:image" content="https://orqestra-qifj.netlify.app/og.png" />
   <meta name="twitter:card" content="summary_large_image" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="preload" as="image" href="/img/app-restock.jpg" />
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
@@ -28,8 +27,9 @@
         Orqestra
       </a>
       <nav class="nav-links" aria-label="Main">
-        <a href="#product">Product</a>
-        <a href="#control">Control</a>
+        <a href="#agents">Agents</a>
+        <a href="#industries">Industries</a>
+        <a href="#rules">How they work</a>
         <a href="#pricing">Pricing</a>
         <a href="#faq">FAQ</a>
       </nav>
@@ -40,97 +40,195 @@
   <main id="main">
     <!-- Hero -->
     <section class="hero">
-      <div class="wrap hero-head">
-        <a class="badge" href="#get-started"><span class="badge-dot"></span>Early access for businesses in Nairobi <span class="badge-arrow" aria-hidden="true">→</span></a>
-        <h1>Grow your business, <br />not your headcount.</h1>
-        <p class="lede">Flow is the operations assistant for growing businesses. Ask it to check stock, compare suppliers, draft orders and line up bills. You approve anything that moves money.</p>
-        <div class="cta-row">
-          <a class="btn btn-dark" href="#get-started">Get early access</a>
-          <a class="btn btn-light" href="#pricing">See pricing</a>
+      <div class="wrap hero-grid">
+        <div class="hero-copy">
+          <a class="badge" href="#get-started"><span class="badge-dot"></span>Early access for businesses in Nairobi <span class="badge-arrow" aria-hidden="true">→</span></a>
+          <h1>An AI team for every desk in your business.</h1>
+          <p class="lede">Orqestra agents answer customers, chase payments, reorder stock and prepare your reports, inside the rules you set. Your people get their time back for the work that needs them.</p>
+          <div class="cta-row">
+            <a class="btn btn-dark" href="#get-started">Get early access</a>
+            <a class="btn btn-light" href="#agents">Meet the agents</a>
+          </div>
+          <p class="hero-note">Grow without hiring for every new branch, product or customer.</p>
         </div>
-      </div>
 
-      <div class="wrap shot-wrap">
-        <figure class="shot">
-          <div class="shot-bar" aria-hidden="true"><span></span><span></span><span></span><div class="shot-url">app.orqestra.co.ke</div></div>
-          <picture>
-            <source media="(max-width: 640px)" srcset="/img/phone-restock.png" />
-            <img src="/img/app-restock.jpg" width="2880" height="1800" alt="Orqestra app: Flow compares three cooking-oil suppliers against the cash reserve, recommends Kisumu Wholesale and drafts a KSh 131,200 purchase order waiting for the owner's approval." />
-          </picture>
-          <span class="callout co-1"><i></i>Compared against your cash, not guessed</span>
-          <span class="callout co-2"><i></i>Every action checked before it runs</span>
-          <span class="callout co-3"><i></i>Waits for the owner to approve</span>
+        <figure class="feed" aria-label="Illustration of a morning with Orqestra agents">
+          <div class="feed-head">
+            <b>Today at Baraka Fresh</b>
+            <span class="live"><i></i>5 agents working</span>
+          </div>
+          <ul class="feed-list">
+            <li><span class="av av-blue">CD</span><div><b>Customer desk</b><p>Answered 3 WhatsApp enquiries about delivery times</p></div><time>07:42</time></li>
+            <li><span class="av av-green">SP</span><div><b>Stock &amp; purchasing</b><p>Drafted an order for 40 jerrycans of cooking oil</p><span class="st st-wait">Waiting for Grace</span></div><time>08:05</time></li>
+            <li><span class="av av-amber">FI</span><div><b>Finance</b><p>Held a KSh 480,000 payment: the supplier's bank details changed</p><span class="st st-stop">Needs a phone call</span></div><time>08:11</time></li>
+            <li><span class="av av-purple">SA</span><div><b>Sales</b><p>Sent a quote to Mama Njeri's Shop and set a follow-up for Friday</p></div><time>08:30</time></li>
+            <li><span class="av av-ink">RE</span><div><b>Reports</b><p>Sent the owner's morning brief: cash, bills due and low stock</p></div><time>08:45</time></li>
+          </ul>
+          <figcaption>Illustration of a morning with Orqestra agents.</figcaption>
         </figure>
-        <p class="shot-cap">The real product, with sample data from a Nairobi wholesaler.</p>
       </div>
     </section>
 
-    <!-- For -->
-    <section class="for">
-      <div class="wrap for-inner">
-        <p>Built for teams of 10 to 250 in</p>
-        <ul>
-          <li>Wholesale</li><li>Distribution</li><li>Retail</li><li>Hospitality</li><li>Manufacturing</li><li>Logistics</li>
-        </ul>
+    <!-- Verbs strip -->
+    <section class="verbs">
+      <div class="wrap verbs-inner">
+        <p>Agents take on the repeated work at every desk:</p>
+        <ul><li>Answer</li><li>Chase</li><li>Prepare</li><li>Watch</li><li>Report</li></ul>
       </div>
     </section>
 
-    <!-- Product bento -->
-    <section id="product" class="section">
+    <!-- Agents -->
+    <section id="agents" class="section">
       <div class="wrap">
         <div class="head">
-          <p class="kicker">Product</p>
-          <h2>Your back office, in one conversation.</h2>
-          <p class="sub">Ask in plain words, by typing or speaking. Flow reads your records, does the sums properly and gets the work ready.</p>
+          <p class="kicker">The agents</p>
+          <h2>Pick the jobs you want off your team's plate.</h2>
+          <p class="sub">Each agent does one job well, for the people at that desk. Start with one, add more as you grow.</p>
         </div>
 
-        <div class="bento">
-          <article class="tile t-wide reveal">
-            <div class="tile-text">
-              <h3>Picks the supplier that fits your cash.</h3>
-              <p>Price, minimum order, delivery time and the reserve you want to keep, all weighed in seconds.</p>
-            </div>
-            <div class="tile-media media-pad"><img src="/img/options.png" width="1420" height="432" loading="lazy" alt="Supplier comparison: Kisumu Wholesale recommended, Nakuru Agro Supplies as an alternative, Mombasa Oil Traders not possible because it would break the KSh 80,000 reserve." /></div>
+        <div class="agents">
+          <article class="agent reveal">
+            <div class="agent-top"><span class="ico ico-blue" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H8l-4 4z"/><path d="M8 9h8M8 12h5"/></svg></span><span class="chip chip-soon">Early access</span></div>
+            <h3>Customer desk</h3>
+            <p class="agent-for">For your front desk and shop floor</p>
+            <ul>
+              <li>Answers prices, stock and opening hours on WhatsApp</li>
+              <li>Takes orders and bookings, day and night</li>
+              <li>Sends order and delivery updates</li>
+              <li>Hands tricky cases to a person</li>
+            </ul>
           </article>
 
-          <article class="tile t-narrow reveal">
-            <div class="tile-text">
-              <h3>Know where you stand.</h3>
-              <p>Cash, what's free to spend, open bills and low stock, always up to date.</p>
-            </div>
-            <div class="tile-media media-pad media-center"><img src="/img/today.png" width="504" height="416" loading="lazy" alt="Today panel: cash KSh 280,000, free to spend KSh 146,500, three open bills totalling KSh 533,500, low stock on cooking oil and rice." /></div>
+          <article class="agent reveal">
+            <div class="agent-top"><span class="ico ico-purple" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19l5-6 4 3 7-9"/><path d="M15 7h5v5"/></svg></span><span class="chip chip-soon">Early access</span></div>
+            <h3>Sales</h3>
+            <p class="agent-for">For your sales team and reps</p>
+            <ul>
+              <li>Follows up every enquiry so none go cold</li>
+              <li>Sends quotes from your price list</li>
+              <li>Reminds reps and keeps the customer list current</li>
+              <li>Weekly summary of deals and repeat buyers</li>
+            </ul>
           </article>
 
-          <article class="tile t-narrow t-phone reveal">
-            <div class="tile-text">
-              <h3>Runs from your phone.</h3>
-              <p>Approve orders and ask questions from the shop floor. Or just tap the mic.</p>
-            </div>
-            <div class="tile-media media-phone"><img src="/img/phone-home.png" width="780" height="1688" loading="lazy" alt="Orqestra on a phone: suggested requests for today's priorities, orders to approve, a weekly report and payroll totals." /></div>
+          <article class="agent reveal">
+            <div class="agent-top"><span class="ico ico-amber" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M7 15h4"/></svg></span><span class="chip chip-live">Available now</span></div>
+            <h3>Finance</h3>
+            <p class="agent-for">For your accountant and cashier</p>
+            <ul>
+              <li>Lines up bills due and prepares payments for approval</li>
+              <li>Stops duplicate and suspicious payments</li>
+              <li>Chases customers who owe you <em class="soon">Soon</em></li>
+              <li>Matches M&#8209;Pesa and bank payments <em class="soon">Soon</em></li>
+            </ul>
           </article>
 
-          <article class="tile t-wide reveal">
-            <div class="tile-text">
-              <h3>Nothing is ordered until someone approves.</h3>
-              <p>Flow drafts the purchase order. The owner approves it with one tap, and the approval only covers that exact supplier, items and total.</p>
-            </div>
-            <div class="tile-media media-pad"><img src="/img/approve.png" width="1488" height="514" loading="lazy" alt="Draft purchase order for 40 jerrycans of cooking oil from Kisumu Wholesale, KSh 131,200, with Approve order and Reject buttons." /></div>
+          <article class="agent reveal">
+            <div class="agent-top"><span class="ico ico-green" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 7l9-4 9 4-9 4z"/><path d="M3 7v10l9 4 9-4V7M12 11v10"/></svg></span><span class="chip chip-live">Available now</span></div>
+            <h3>Stock &amp; purchasing</h3>
+            <p class="agent-for">For your storekeeper and buyer</p>
+            <ul>
+              <li>Watches stock against reorder levels</li>
+              <li>Compares suppliers on price, minimums and delivery</li>
+              <li>Drafts purchase orders within your cash limits</li>
+              <li>Waits for approval before anything is ordered</li>
+            </ul>
           </article>
+
+          <article class="agent reveal">
+            <div class="agent-top"><span class="ico ico-ink" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 20V4M4 20h16"/><path d="M8 16v-4M12 16V8M16 16v-6"/></svg></span><span class="chip chip-live">Available now</span></div>
+            <h3>Reports</h3>
+            <p class="agent-for">For owners and managers</p>
+            <ul>
+              <li>Answers "how are we doing?" in plain words</li>
+              <li>Weekly report on cash, bills and stock</li>
+              <li>Morning brief on your phone <em class="soon">Soon</em></li>
+              <li>Pulls numbers from several systems <em class="soon">Soon</em></li>
+            </ul>
+          </article>
+
+          <article class="agent reveal">
+            <div class="agent-top"><span class="ico ico-rose" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 11h5M18.5 8.5v5"/></svg></span><span class="chip chip-soon">Early access</span></div>
+            <h3>People &amp; admin</h3>
+            <p class="agent-for">For HR and office managers</p>
+            <ul>
+              <li>Answers staff questions about leave and policies</li>
+              <li>Tracks leave requests for approval</li>
+              <li>Runs onboarding checklists for new staff</li>
+              <li>Prepares payroll inputs for review</li>
+            </ul>
+          </article>
+        </div>
+        <p class="fine">Need something else? We build custom agents for the jobs your business does differently.</p>
+      </div>
+    </section>
+
+    <!-- Industries -->
+    <section id="industries" class="section section-soft">
+      <div class="wrap">
+        <div class="head">
+          <p class="kicker">Industries</p>
+          <h2>What agents do in a business like yours.</h2>
+        </div>
+        <div class="tabs" role="tablist" aria-label="Industries">
+          <button role="tab" aria-selected="true" aria-controls="ind-wholesale" id="tab-wholesale">Wholesale &amp; distribution</button>
+          <button role="tab" aria-selected="false" aria-controls="ind-hotels" id="tab-hotels" tabindex="-1">Hotels &amp; restaurants</button>
+          <button role="tab" aria-selected="false" aria-controls="ind-clinics" id="tab-clinics" tabindex="-1">Clinics &amp; pharmacies</button>
+          <button role="tab" aria-selected="false" aria-controls="ind-schools" id="tab-schools" tabindex="-1">Schools</button>
+          <button role="tab" aria-selected="false" aria-controls="ind-logistics" id="tab-logistics" tabindex="-1">Logistics</button>
+          <button role="tab" aria-selected="false" aria-controls="ind-retail" id="tab-retail" tabindex="-1">Retail &amp; shops</button>
+        </div>
+
+        <div class="panel" role="tabpanel" id="ind-wholesale" aria-labelledby="tab-wholesale">
+          <div class="job"><span>Stock &amp; purchasing</span><p>Reorders fast movers before they run out, without breaking your cash reserve.</p></div>
+          <div class="job"><span>Finance</span><p>Chases retailers who owe you and matches what they pay.</p></div>
+          <div class="job"><span>Customer desk</span><p>Takes repeat orders from shops over WhatsApp.</p></div>
+          <div class="job"><span>Reports</span><p>Weekly sales and margins by product and by route.</p></div>
+        </div>
+        <div class="panel" role="tabpanel" id="ind-hotels" aria-labelledby="tab-hotels" hidden>
+          <div class="job"><span>Customer desk</span><p>Answers booking enquiries at midnight and confirms reservations.</p></div>
+          <div class="job"><span>Stock &amp; purchasing</span><p>Orders kitchen and housekeeping supplies within budget.</p></div>
+          <div class="job"><span>Finance</span><p>Matches M&#8209;Pesa payments to bookings and flags gaps.</p></div>
+          <div class="job"><span>Reports</span><p>Daily occupancy and sales brief for the owner.</p></div>
+        </div>
+        <div class="panel" role="tabpanel" id="ind-clinics" aria-labelledby="tab-clinics" hidden>
+          <div class="job"><span>Customer desk</span><p>Books appointments and sends reminders to reduce no-shows.</p></div>
+          <div class="job"><span>Stock &amp; purchasing</span><p>Tracks medicine stock and expiry dates, and drafts reorders.</p></div>
+          <div class="job"><span>Finance</span><p>Follows up insurance claims and unpaid patient bills.</p></div>
+          <div class="job"><span>People &amp; admin</span><p>Answers staff rota and leave questions.</p></div>
+        </div>
+        <div class="panel" role="tabpanel" id="ind-schools" aria-labelledby="tab-schools" hidden>
+          <div class="job"><span>Customer desk</span><p>Answers parents' questions about fees, dates and uniforms.</p></div>
+          <div class="job"><span>Finance</span><p>Sends fee reminders and matches payments to students.</p></div>
+          <div class="job"><span>Stock &amp; purchasing</span><p>Keeps the kitchen and stores supplied each term.</p></div>
+          <div class="job"><span>Reports</span><p>Fee collection report for the board, every week.</p></div>
+        </div>
+        <div class="panel" role="tabpanel" id="ind-logistics" aria-labelledby="tab-logistics" hidden>
+          <div class="job"><span>Customer desk</span><p>Tells customers where their delivery is, any time.</p></div>
+          <div class="job"><span>Finance</span><p>Invoices on delivery and chases late payers.</p></div>
+          <div class="job"><span>Stock &amp; purchasing</span><p>Buys fuel, tyres and spare parts within approved limits.</p></div>
+          <div class="job"><span>Reports</span><p>Daily trips, costs and revenue per vehicle.</p></div>
+        </div>
+        <div class="panel" role="tabpanel" id="ind-retail" aria-labelledby="tab-retail" hidden>
+          <div class="job"><span>Stock &amp; purchasing</span><p>Restocks best sellers and spots slow movers.</p></div>
+          <div class="job"><span>Customer desk</span><p>Answers "do you have this in stock?" on WhatsApp.</p></div>
+          <div class="job"><span>Sales</span><p>Follows up customers who asked but didn't buy.</p></div>
+          <div class="job"><span>Reports</span><p>End-of-day sales summary, per shop.</p></div>
         </div>
       </div>
     </section>
 
-    <!-- Control -->
-    <section id="control" class="section section-ink">
+    <!-- Rules -->
+    <section id="rules" class="section section-ink">
       <div class="wrap control">
         <div class="control-text reveal">
-          <p class="kicker kicker-light">Control</p>
-          <h2>Nothing moves money without your OK.</h2>
-          <p class="sub sub-light">AI is fast, but it can be fooled like anyone else. So Flow works inside rules you set, and every action is checked before it runs.</p>
+          <p class="kicker kicker-light">How every agent works</p>
+          <h2>Fast like software. Careful like your best employee.</h2>
           <dl class="points">
-            <div><dt>Limits for each person</dt><dd>Your accountant pays up to KSh 100,000. Anything bigger comes to you.</dd></div>
-            <div><dt>Scams stopped, not paid</dt><dd>"We've changed our bank details, pay now" gets held for a phone call.</dd></div>
-            <div><dt>A record of everything</dt><dd>Who asked, what Flow did and who approved it.</dd></div>
+            <div><dt>Works in the tools you already use</dt><dd>WhatsApp, Excel, M&#8209;Pesa and your accounting software. No new system for your team to learn.</dd></div>
+            <div><dt>Asks before money moves</dt><dd>Orders, payments and big changes wait for a person with authority. Each person has their own limits.</dd></div>
+            <div><dt>Can't be talked out of your rules</dt><dd>A fake "we've changed our bank details" message gets held, not paid.</dd></div>
+            <div><dt>Shows its work</dt><dd>Every action is recorded, and each month you see the hours saved and errors caught.</dd></div>
           </dl>
         </div>
         <div class="scam reveal">
@@ -141,49 +239,45 @@
           <div class="checks">
             <img src="/img/checks-held.png" width="760" height="1800" loading="lazy" alt="Action checks: reading open bills allowed; changing supplier bank details held; paying KSh 480,000 held above the KSh 100,000 limit; exporting the supplier list blocked; paying the legitimate KSh 38,500 bill allowed." />
           </div>
-          <p class="scam-cap">What happened when our test accountant asked Flow to "process this week's bills". Payments are simulated.</p>
+          <p class="scam-cap">The Finance agent in our test business, asked to "process this week's bills". Payments are simulated.</p>
         </div>
       </div>
     </section>
 
-    <!-- How -->
-    <section class="section">
+    <!-- See one at work -->
+    <section id="product" class="section">
       <div class="wrap">
         <div class="head">
-          <p class="kicker">Getting started</p>
-          <h2>Live in about a week.</h2>
+          <p class="kicker">See an agent at work</p>
+          <h2>The Stock &amp; purchasing agent, from request to approved order.</h2>
+          <p class="sub">Brian asks for cooking oil and a safe cash balance. The agent does the rest, and Grace approves from her phone.</p>
         </div>
-        <ol class="steps">
-          <li class="reveal"><span>01</span><h3>Bring your records</h3><p>Stock, suppliers and open bills from Excel, your current software or even notebook photos. We set it up with you.</p></li>
-          <li class="reveal"><span>02</span><h3>Set your rules</h3><p>Who can do what, spending limits per person, and the cash you always want in the bank.</p></li>
-          <li class="reveal"><span>03</span><h3>Just ask</h3><p>Your team asks Flow in plain words. Flow does the work and brings a person in whenever money is involved.</p></li>
-        </ol>
+        <figure class="shot reveal">
+          <div class="shot-bar" aria-hidden="true"><span></span><span></span><span></span><div class="shot-url">app.orqestra.co.ke</div></div>
+          <picture>
+            <source media="(max-width: 640px)" srcset="/img/phone-restock.png" />
+            <img src="/img/app-restock.jpg" width="2880" height="1800" loading="lazy" alt="Orqestra app: the agent compares three cooking-oil suppliers against the cash reserve, recommends Kisumu Wholesale and drafts a KSh 131,200 purchase order waiting for the owner's approval." />
+          </picture>
+          <span class="callout co-1"><i></i>Compared against your cash, not guessed</span>
+          <span class="callout co-2"><i></i>Every action checked before it runs</span>
+          <span class="callout co-3"><i></i>Waits for the owner to approve</span>
+        </figure>
+        <p class="shot-cap">The real product, with sample data from a Nairobi wholesaler.</p>
       </div>
     </section>
 
-    <!-- Compare -->
+    <!-- How we start -->
     <section class="section section-soft">
       <div class="wrap">
         <div class="head">
-          <p class="kicker">Why Orqestra</p>
-          <h2>Not another system to learn.</h2>
-          <p class="sub">Accounting apps and ERPs store your records, but your team still does the work. Flow does the work, inside your rules.</p>
+          <p class="kicker">How we start</p>
+          <h2>Begin with the job you'd hire for next.</h2>
         </div>
-        <div class="table-wrap reveal">
-          <table class="compare">
-            <thead>
-              <tr><th scope="col"><span class="sr">Feature</span></th><th scope="col" class="us">Orqestra</th><th scope="col">Another admin hire</th><th scope="col">Accounting app</th><th scope="col">Full ERP</th></tr>
-            </thead>
-            <tbody>
-              <tr><th scope="row">Does the work for you</th><td class="us">Yes</td><td>Yes</td><td class="dim">No</td><td class="dim">No</td></tr>
-              <tr><th scope="row">Keeps your current systems</th><td class="us">Yes</td><td>Yes</td><td class="dim">Move your books in</td><td class="dim">Replaces them</td></tr>
-              <tr><th scope="row">Approvals and limits on money</th><td class="us">Built in</td><td class="dim">Trust-based</td><td>Some</td><td>Yes</td></tr>
-              <tr><th scope="row">Time to get started</th><td class="us">About a week</td><td>1–2 months</td><td>Days</td><td class="dim">3–12 months</td></tr>
-              <tr><th scope="row">Monthly cost</th><td class="us">From KSh 4,900</td><td>KSh 45,000–60,000</td><td>KSh 1,000–10,000</td><td>KSh 35,000+ after setup</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <p class="fine">Indicative Nairobi market figures. Admin cost includes statutory contributions; ERP cost includes licences and partner setup for a 20-person team.</p>
+        <ol class="steps">
+          <li class="reveal"><span>01</span><h3>A 30-minute call</h3><p>We find the work eating your team's hours, and which agent would take it off them.</p></li>
+          <li class="reveal"><span>02</span><h3>Live in about a week</h3><p>We set the agent up with your records and rules, and train your team to work with it.</p></li>
+          <li class="reveal"><span>03</span><h3>See the results monthly</h3><p>A short report on hours saved and errors caught. When you're ready, add the next agent.</p></li>
+        </ol>
       </div>
     </section>
 
@@ -192,8 +286,8 @@
       <div class="wrap">
         <div class="head head-center">
           <p class="kicker">Pricing</p>
-          <h2>Less than a quarter of a new hire.</h2>
-          <p class="sub">Monthly plans in KES. Pay by M&#8209;Pesa or bank transfer. Cancel any time.</p>
+          <h2>Hire an agent for less than a fifth of a new hire.</h2>
+          <p class="sub">A junior admin in Nairobi costs about KSh 55,000 a month. An agent starts at KSh 9,900, works every day and never forgets a follow-up.</p>
           <div class="toggle" role="group" aria-label="Billing period">
             <button type="button" class="toggle-btn is-on" data-period="monthly" aria-pressed="true">Monthly</button>
             <button type="button" class="toggle-btn" data-period="annual" aria-pressed="false">Yearly <em>2 months free</em></button>
@@ -202,66 +296,54 @@
 
         <div class="plans">
           <article class="plan reveal">
-            <h3>Starter</h3>
-            <p class="plan-for">Small teams getting organised.</p>
-            <p class="price"><span>KSh</span><b data-monthly="4,900" data-annual="4,080">4,900</b><small>/mo</small></p>
-            <p class="billed" data-monthly="Billed monthly" data-annual="KSh 49,000 a year">Billed monthly</p>
-            <a class="btn btn-light btn-block" href="#get-started" data-plan="Starter">Choose Starter</a>
+            <h3>One agent</h3>
+            <p class="plan-for">Start with the job that hurts most.</p>
+            <p class="price"><span>KSh</span><b data-monthly="9,900" data-annual="8,250">9,900</b><small>/mo</small></p>
+            <p class="billed" data-monthly="Billed monthly" data-annual="KSh 99,000 a year">Billed monthly</p>
+            <a class="btn btn-light btn-block" href="#get-started" data-plan="One agent">Start with one</a>
             <ul>
-              <li>Up to 3 people</li>
-              <li>Stock, suppliers, bills and cash</li>
-              <li>Order drafts with approval</li>
-              <li>Import from Excel</li>
-              <li>300 tasks a month</li>
+              <li>Any ready-made agent</li>
+              <li>Up to 10 people working with it</li>
+              <li>Approvals and limits per person</li>
+              <li>1,000 tasks a month</li>
+              <li>Set up with you in about a week</li>
             </ul>
           </article>
 
           <article class="plan plan-pop reveal">
             <p class="plan-tag">Most popular</p>
-            <h3>Growth</h3>
-            <p class="plan-for">Teams that buy and pay every day.</p>
-            <p class="price"><span>KSh</span><b data-monthly="14,900" data-annual="12,420">14,900</b><small>/mo</small></p>
-            <p class="billed" data-monthly="Billed monthly" data-annual="KSh 149,000 a year">Billed monthly</p>
-            <a class="btn btn-dark btn-block" href="#get-started" data-plan="Growth">Choose Growth</a>
+            <h3>Agent team</h3>
+            <p class="plan-for">Three agents that work together.</p>
+            <p class="price"><span>KSh</span><b data-monthly="24,900" data-annual="20,750">24,900</b><small>/mo</small></p>
+            <p class="billed" data-monthly="Billed monthly · save KSh 4,800" data-annual="KSh 249,000 a year">Billed monthly · save KSh 4,800</p>
+            <a class="btn btn-dark btn-block" href="#get-started" data-plan="Agent team">Build your team</a>
             <ul>
-              <li class="plus">Everything in Starter, plus</li>
-              <li>Up to 15 people</li>
-              <li>Roles and spending limits</li>
-              <li>Approvals on your phone</li>
-              <li>Scam checks on bank changes</li>
-              <li>Ask by voice</li>
-              <li>2,000 tasks a month</li>
-              <li>Setup done with you</li>
+              <li class="plus">Everything in One agent, plus</li>
+              <li>Any 3 agents, sharing what they know</li>
+              <li>One approval inbox for all of them</li>
+              <li>Up to 30 people</li>
+              <li>Monthly hours-saved report</li>
+              <li>5,000 tasks a month</li>
+              <li>Priority WhatsApp support</li>
             </ul>
           </article>
 
           <article class="plan reveal">
-            <h3>Business</h3>
-            <p class="plan-for">Multi-branch, up to 50 people.</p>
-            <p class="price"><span>KSh</span><b data-monthly="34,900" data-annual="29,080">34,900</b><small>/mo</small></p>
-            <p class="billed" data-monthly="Billed monthly" data-annual="KSh 349,000 a year">Billed monthly</p>
-            <a class="btn btn-light btn-block" href="#get-started" data-plan="Business">Choose Business</a>
+            <h3>Custom agents</h3>
+            <p class="plan-for">For 50 to 250 people and mixed systems.</p>
+            <p class="price"><span>KSh</span><b>25,000</b><small>/agent/mo</small></p>
+            <p class="billed">Starting price · plus setup from KSh 100,000</p>
+            <a class="btn btn-light btn-block" href="#get-started" data-plan="Custom agents">Talk to us</a>
             <ul>
-              <li class="plus">Everything in Growth, plus</li>
-              <li>Up to 50 people, many branches</li>
-              <li>Custom approval rules</li>
-              <li>M&#8209;Pesa and eTIMS records <em class="soon">Soon</em></li>
-              <li>QuickBooks, Sage, Zoho, Odoo <em class="soon">Soon</em></li>
-              <li>Monthly hours-saved report</li>
-              <li>Unlimited tasks (fair use)</li>
+              <li>Agents built around your workflows</li>
+              <li>Connected to Sage, QuickBooks, Odoo, Excel and M&#8209;Pesa</li>
+              <li>Workflow review from KSh 25,000, credited to setup</li>
               <li>Dedicated success manager</li>
+              <li>Service-level agreement</li>
             </ul>
           </article>
         </div>
-
-        <div class="custom reveal">
-          <div>
-            <h3>Custom <span>· 50 to 250 people</span></h3>
-            <p>We review how your team works, then build assistants for the jobs that take the most hours, across the systems you already run. Workflow review from KSh 25,000, credited against setup.</p>
-          </div>
-          <a class="btn btn-light" href="#get-started" data-plan="Custom">Talk to us</a>
-        </div>
-        <p class="fine fine-center">Prices exclude VAT. A task is one thing Flow does, like checking stock or drafting an order. Founding businesses keep launch prices for 12 months.</p>
+        <p class="fine fine-center">Ready today: Finance, Stock &amp; purchasing and Reports. Customer desk, Sales and People &amp; admin join your plan as they launch.<br />Prices exclude VAT. A task is one thing an agent does, like answering an enquiry or drafting an order. WhatsApp message fees are billed at cost. Founding businesses keep launch prices for 12 months.</p>
       </div>
     </section>
 
@@ -274,24 +356,28 @@
         </div>
         <div class="faq-list">
           <details>
-            <summary>Will Flow replace my staff?</summary>
-            <p>No. Flow takes repetitive admin off your team so they can spend time on customers and suppliers. Most owners use it to grow without hiring for every new branch or product line.</p>
+            <summary>What exactly is an AI agent?</summary>
+            <p>Software that does a defined job the way a trained employee would: it reads your records and messages, follows your rules, does the work in your systems and asks a person when a decision is needed. Unlike a chatbot, it doesn't just talk; it gets things done.</p>
           </details>
           <details>
-            <summary>Can Flow spend money without me knowing?</summary>
+            <summary>Will agents replace my staff?</summary>
+            <p>No. Agents take repetitive work off your team so they can spend time on customers, suppliers and growing the business. Most owners use them to grow without hiring for every new branch or product line.</p>
+          </details>
+          <details>
+            <summary>Which agents can I use today?</summary>
+            <p>Stock &amp; purchasing, Finance (bills and payments) and Reports are working now. Customer desk, Sales and People &amp; admin are being built with our founding businesses, who get them first.</p>
+          </details>
+          <details>
+            <summary>Can an agent spend money without me knowing?</summary>
             <p>No. Orders and payments above each person's limit wait for someone with authority, and every action is recorded. You set the limits.</p>
           </details>
           <details>
-            <summary>Do I need to change my accounting software?</summary>
-            <p>No. We set you up from your existing records. Direct connections to QuickBooks, Sage, Zoho and Odoo are being built with our first customers.</p>
-          </details>
-          <details>
-            <summary>Does it work with M&#8209;Pesa and eTIMS?</summary>
-            <p>Those connections are in progress with our founding businesses. Until then, Flow prepares payments for your team to make, and nothing is sent without you.</p>
+            <summary>Do I need to change my software?</summary>
+            <p>No. Agents work alongside what you already use. We set you up from your existing records, and connect to your accounting software and M&#8209;Pesa as those connections roll out.</p>
           </details>
           <details>
             <summary>Is my business data safe?</summary>
-            <p>Your data is only used to run your account. Each person sees only what their role allows, account numbers are masked, and we sign a data processing agreement with every customer.</p>
+            <p>Your data is only used to run your agents. Each person sees only what their role allows, account numbers are masked, and we sign a data processing agreement with every customer.</p>
           </details>
           <details>
             <summary>What if I want to stop?</summary>
@@ -307,11 +393,11 @@
         <div class="signup-text">
           <p class="kicker">Early access</p>
           <h2>Be one of our founding businesses.</h2>
-          <p class="sub">We're setting up a small group of businesses personally. Tell us about yours and we'll call you within two working days.</p>
+          <p class="sub">We're setting up a small group of businesses personally, and building the next agents with them. Tell us about yours and we'll call you within two working days.</p>
           <ul class="perks">
             <li>Launch price kept for 12 months</li>
-            <li>Setup done with you</li>
-            <li>A direct line to the team building Flow</li>
+            <li>First access to new agents</li>
+            <li>A say in what we build next</li>
           </ul>
         </div>
         <form class="form" name="early-access" method="POST" action="/thank-you" data-netlify="true" netlify-honeypot="bot-field">
@@ -331,10 +417,11 @@
               <select name="business_type" required>
                 <option value="" disabled selected>Choose one</option>
                 <option>Wholesale / distribution</option>
-                <option>Retail / shops</option>
                 <option>Hotels / restaurants</option>
-                <option>Manufacturing</option>
+                <option>Clinics / pharmacies</option>
+                <option>Schools</option>
                 <option>Logistics</option>
+                <option>Retail / shops</option>
                 <option>Other</option>
               </select>
             </label>
@@ -348,16 +435,17 @@
               </select>
             </label>
           </div>
-          <label>Plan
-            <select name="plan" id="plan-select">
-              <option value="Not sure yet">Not sure yet</option>
-              <option>Starter</option>
-              <option>Growth</option>
-              <option>Business</option>
-              <option>Custom</option>
-            </select>
-          </label>
-          <label><span>What takes most of your team's time? <span class="opt">Optional</span></span><textarea name="message" rows="3"></textarea></label>
+          <fieldset class="picks">
+            <legend>Which agents interest you?</legend>
+            <label><input type="checkbox" name="agents" value="Customer desk" /> Customer desk</label>
+            <label><input type="checkbox" name="agents" value="Sales" /> Sales</label>
+            <label><input type="checkbox" name="agents" value="Finance" /> Finance</label>
+            <label><input type="checkbox" name="agents" value="Stock & purchasing" /> Stock &amp; purchasing</label>
+            <label><input type="checkbox" name="agents" value="Reports" /> Reports</label>
+            <label><input type="checkbox" name="agents" value="People & admin" /> People &amp; admin</label>
+          </fieldset>
+          <input type="hidden" name="plan" id="plan-field" value="Not chosen" />
+          <label><span>What would you hire your next person to do? <span class="opt">Optional</span></span><textarea name="message" rows="3"></textarea></label>
           <button class="btn btn-dark btn-block" type="submit">Request early access</button>
           <p class="form-note">We only use your details to contact you about Orqestra.</p>
         </form>
@@ -373,9 +461,9 @@
       </a>
       <p>© 2026 Orqestra · Made in Nairobi</p>
       <nav class="footer-links" aria-label="Footer">
-        <a href="#product">Product</a>
+        <a href="#agents">Agents</a>
+        <a href="#industries">Industries</a>
         <a href="#pricing">Pricing</a>
-        <a href="#faq">FAQ</a>
         <a href="#get-started">Contact</a>
       </nav>
     </div>
